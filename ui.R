@@ -3,13 +3,13 @@ titlePanel("Solar Deutschland")
 
 sidebar <- dashboardSidebar(
   selectInput(inputId = "selected_country", label = "1.Select city", choices = sort(unique(sedn_slpc$Stadt))),
-  dateRangeInput(inputId = "date", label = "2.Select years", format = "yyyy", startview = "decade", start = "1990-01-01", end = "1990-01-01"),
-  numericInput(inputId = "kwhy", label = "3.kWh Jahresverbrauch", value = "4000"),
-  numericInput(inputId = "m2", label = "4.Freie Dachfläche", value = "1"),
+  dateRangeInput(inputId = "date", label = "2.Select years", format = "yyyy", startview = "decade", start = "1990-01-01", end = "2010-12-31"),
+  numericInput(inputId = "kwhy", label = "3.kWh Jahresverbrauch", value = "440000"),
+  numericInput(inputId = "m2", label = "4.Freie Dachfläche", value = "500"),
   numericInput(inputId = "efficency", label = "5.Effizienz Module", value = "0.2", min = 0, max = 1, step = 0.05),
-  numericInput(inputId = "cost", label = "6.Kosten pro kWh", value = "0.28"),
-  numericInput(inputId = "price", label = "7. Einspeisevergütung", value = "0.1"),
-  numericInput(inputId = "invest", label = "8. Investition/kWp", value = "1300"),
+  numericInput(inputId = "cost", label = "6.Kosten pro kWh", value = "0.16"),
+  numericInput(inputId = "price", label = "7. Einspeisevergütung", value = "0.075"),
+  numericInput(inputId = "invest", label = "8. Investition/kWp", value = "860"),
   numericInput(inputId = "lk", label = "9. Laufende Kosten pro Jahr/kWp", value = "8"),
   numericInput(inputId = "zi", label = "10. Zinsen", value = "0.015"),
   numericInput(inputId = "ek", label = "11. Anteil Eigenkapital", value = "0.7")

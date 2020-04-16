@@ -52,11 +52,12 @@ function(input, output) {
        filter(Stadt == input$selected_country) %>%
        filter(utc_timestamp >= paste0(startyear, "-01-01 00:00:00"), utc_timestamp <= paste0(endyear, "-12-31 24:00:00")) %>% 
        mutate(swm2 = solar_watt * input$m2) %>%
-       mutate(kwhd = kwh / 4000 *input$kwhy) %>%
-       mutate(ec = swm2 - kwhd) %>%
-       mutate(e1 = ifelse(swm2 < kwhd, swm2, ifelse(swm2 > kwhd, kwhd , 0))) %>%
-       mutate(v1 = ifelse(swm2 > kwhd, swm2 - kwhd, 0)) %>%
-       summarise(ev = sum(e1, na.rm = TRUE) / years * input$cost * input$efficency, es = sum(v1, na.rm = TRUE) / years * input$price * input$efficency, ge = ev + es)
+       #mutate(kwhd = kwh / 4000 *input$kwhy) %>%
+       #mutate(ec = swm2 - kwhd) %>%
+       mutate(e1 = ifelse(swm2 < consumw1, swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
+       mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
+       summarise(ev = (sum(e1, na.rm = TRUE) / years * input$cost * input$efficency), es = (sum(v1, na.rm = TRUE) / years * input$price * input$efficency), ge = ev + es)
+     
    })
    
    invest <- reactive({
@@ -134,7 +135,7 @@ function(input, output) {
     #  )
   #})
 
-  
+ # std = sd(ec, na.rm = TRUE) / sqrt(n())
   
   
   
@@ -143,12 +144,10 @@ function(input, output) {
     data %>%
       mutate(day = utc_timestamp %>% as.character() %>% substr(6,19)) %>%
       mutate(swm2 = solar_watt * input$efficency * input$m2) %>%
-      mutate(kwhd = kwh / 4000 *input$kwhy) %>% 
-      mutate(ec = swm2 - kwhd) %>%
-      mutate(e1 = ifelse(swm2 < kwhd, swm2, ifelse(swm2 > kwhd, kwhd , 0))) %>%
-      mutate(v1 = ifelse(swm2 > kwhd, swm2 - kwhd, 0)) %>%
+      mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
+      mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>%
-      summarize(avg = mean(solar_watt, na.rm = TRUE) * input$m2, e = mean(e1), v = mean(v1), stdv1 = sd(v1, na.rm = TRUE) , std = sd(ec, na.rm = TRUE) / sqrt(n()), slp = mean(kwhd)) %>%
+      summarize(avg = mean(solar_watt, na.rm = TRUE) * input$m2, e = mean(e1), v = mean(v1), stdv1 = sd(v1, na.rm = TRUE) , slp = mean(consumw1)) %>%
       mutate(date = as.POSIXct(paste0("2019-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       ggplot() + 
       aes(x = date) +
