@@ -165,8 +165,8 @@ solar_europe_de_nuts %>%
   # die Datensätze müssen gejoint werden, dabei muss das datum entfernt werden und nur auf stundenbasis gejoint.
   
   
-  slp_w1 <- read_delim("C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/slp_w3.csv", delim = ",")
-  solar_europe_de_nuts <- read_delim("C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv", delim = ",")
+  slp_w1 <- read_delim("/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/slp_w3.csv", delim = ",")
+  solar_europe_de_nuts <- read_delim("/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv", delim = ",")
   
   #1 Solarstrahlungsdaten um spalte day erweitert
   sedn_t <- solar_europe_de_nuts %>%
@@ -178,7 +178,7 @@ solar_europe_de_nuts %>%
     mutate(day1 = date %>% as.character() %>% substr(20,22)) %>% 
     unite("z", day, day1, sep = "") %>% 
     select(-date) %>% 
-    mutate(date = as.POSIXct(z, format="%d-%m-%Y %H:%M:%S")) %>% 
+    mutate(date = as.POSIXct(z, format="%d-%m-%Y %H:%M:%S")) #%>% 
     select(-z) %>% 
     mutate(day = date %>% as.character() %>% substr(5,18))
     colnames(sedn_slp_werk1)[1] <- "consumw1"
@@ -190,10 +190,10 @@ solar_europe_de_nuts %>%
     select(-date, -day)
   
   #4 Neue Datentabelle in csv geschrieben
-  write_csv(sedn_slpc,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv")
+  write_csv(sedn_slpc,"/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv")
 ##########################################################################################################
   
-
+  sedn_slpc <- read_delim("/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu - kopie.csv", delim = ",")
   #if schleife Eigenverbrauch
   #Selbstverbrauch = 1. Produktion < Verbrauch = Produktion e1
   #Selbstverbrauch = 2. Produktion > Verbrauch = Verbrauch e2
@@ -201,12 +201,12 @@ solar_europe_de_nuts %>%
 
       er <- sedn_slpc %>%
       filter(Stadt == "Stuttgart") %>%
-      filter(utc_timestamp >= "1990-01-01 00:00:00", utc_timestamp <="1991-12-31 24:00:00") %>% 
-      mutate(swm2 = solar_watt * 500) %>%
-      mutate(e1 = ifelse(swm2 < consumw1, swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
-      mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0))# %>%
-      summarise(ev = (sum(e1, na.rm = TRUE) / 20 * 0.165 * 0.2), (es = sum(v1, na.rm = TRUE) / 20 * 0.075 * 0.2), ge = ev + es) 
-      mean(slp_w3$kwh)
+      filter(utc_timestamp >= "1990-01-01 00:00:00", utc_timestamp <="1990-12-31 24:00:00") %>% 
+      mutate(swm2 = solar_watt * 500 * 0.2) %>%
+      mutate(e1 = ifelse(swm2 < consumw1, swm2, consumw1)) %>%
+      mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
+      summarise(production = sum(swm2),ev = (sum(e1, na.rm = TRUE) / 1), (es = sum(v1, na.rm = TRUE) / 1), ge = ev + es, test = mean(v1)) 
+      mean(sedn_slpc$consumw1)
       write_csv(er,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/teest2.csv")
 
 
