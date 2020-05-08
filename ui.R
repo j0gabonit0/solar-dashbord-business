@@ -22,6 +22,7 @@ sidebar <- dashboardSidebar(
 body <- dashboardBody(
   h3("Photovoltaik Rendite Rechner", align = "center"),
   plotOutput("radiation_chart"),
+  plotOutput("bar_chart"),
   hr( colour = "red"),
   fluidRow(
       # Dynamic valueBoxes

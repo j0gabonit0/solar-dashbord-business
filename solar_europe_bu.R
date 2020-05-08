@@ -8,6 +8,7 @@ library(ggplot2)
 library(scales)
 library(dplR)
 library(lubridate)
+library(reshape2)
 
 #############
 #Shinydashbord neu installieren
@@ -165,20 +166,21 @@ solar_europe_de_nuts %>%
   # die Datensätze müssen gejoint werden, dabei muss das datum entfernt werden und nur auf stundenbasis gejoint.
   
   
-  slp_w1 <- read_delim("/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/slp_w3.csv", delim = ",")
-  solar_europe_de_nuts <- read_delim("/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv", delim = ",")
+  slp_w3 <- read_delim("/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/slp_w3.csv", delim = ",")
+  slp_w3 <- read_delim("C:/Users/corvi/Downloads/werk3.csv", delim = ",")
+  solar_europe_de_nuts <- read_delim("C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv", delim = ",")
   
   #1 Solarstrahlungsdaten um spalte day erweitert
   sedn_t <- solar_europe_de_nuts %>%
     mutate(day = utc_timestamp %>% as.character() %>% substr(5,18))
   
   #2 Standardlastprofil pro Stunde um day erweitert
-   sedn_slp_werk1 <- slp_w1 %>%
+   sedn_slp_werk1 <- slp_w3 %>%
     mutate(day = date %>% as.character() %>% substr(0,16))%>%
     mutate(day1 = date %>% as.character() %>% substr(20,22)) %>% 
     unite("z", day, day1, sep = "") %>% 
     select(-date) %>% 
-    mutate(date = as.POSIXct(z, format="%d-%m-%Y %H:%M:%S")) #%>% 
+    mutate(date = as.POSIXct(z, format="%d-%m-%Y %H:%M:%S")) %>% 
     select(-z) %>% 
     mutate(day = date %>% as.character() %>% substr(5,18))
     colnames(sedn_slp_werk1)[1] <- "consumw1"
@@ -190,10 +192,10 @@ solar_europe_de_nuts %>%
     select(-date, -day)
   
   #4 Neue Datentabelle in csv geschrieben
-  write_csv(sedn_slpc,"/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv")
+  write_csv(sedn_slpc,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_w3.csv")
 ##########################################################################################################
   
-  sedn_slpc <- read_delim("/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu - kopie.csv", delim = ",")
+  sedn_slpc <- read_delim("C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_w3.csv", delim = ",")
   #if schleife Eigenverbrauch
   #Selbstverbrauch = 1. Produktion < Verbrauch = Produktion e1
   #Selbstverbrauch = 2. Produktion > Verbrauch = Verbrauch e2
@@ -207,6 +209,45 @@ solar_europe_de_nuts %>%
       mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       summarise(production = sum(swm2),ev = (sum(e1, na.rm = TRUE) / 1), (es = sum(v1, na.rm = TRUE) / 1), ge = ev + es, test = mean(v1)) 
       mean(sedn_slpc$consumw1)
-      write_csv(er,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/teest2.csv")
-
-
+      write_csv(er,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/teest2.csv")j
+      
+      #### fehlende Werte in Schaltjahren -Problem
+      
+      j <- sedn_slpc %>%
+        filter(Stadt == "Stuttgart") %>%
+        filter(utc_timestamp >= "1990-01-01 00:00:00", utc_timestamp <="2010-12-31 24:00:00") %>% 
+        mutate(day = utc_timestamp %>% as.character() %>% substr(6,19)) %>%
+        mutate(swm2 = solar_watt * 0.2 * 500) %>%
+        mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
+        mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
+        group_by(day) %>%
+        summarise(e = mean(e1), v = mean(v1)) %>% 
+        mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
+        mutate(month = month(date)) %>% 
+        group_by(month) %>% 
+        summarize(em = sum(e), vm = sum(v))#%>%
+          ggplot(j, aes(x = month)) +
+          geom_line(aes(y = em),stat = "identity") +
+          geom_line(aes(y = vm),stat = "identity") 
+          
+      melt(j,id.var= "month")
+      ggplot(j, aes(x = month, y = em, fill = variable)) + 
+        
+      geom_bar(stat = "identity", width = 0.7, colour = "blue", fill=rgb(0.1,0.4,0.5,0.7))
+      
+      
+      
+      specie <- c(rep("month" , 12) )
+      condition <- rep(c("em" , "vm") , 12)
+      value <- abs(rnorm(12,6,12))
+      data <- data.frame(specie,condition,value)
+      
+      # Stacked + percent
+      ggplot(data, aes(fill=condition, y=value, x=specie)) + 
+        geom_bar(position="fill", stat="identity")
+      
+      
+      
+      
+      
+      

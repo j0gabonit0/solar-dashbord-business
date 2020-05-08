@@ -148,6 +148,28 @@ function(input, output) {
 
 # Plot
   
+  output$bar_chart <- renderPlot({
+    data <- filtering()
+    data %>%
+      mutate(day = utc_timestamp %>% as.character() %>% substr(6,19)) %>%
+      mutate(swm2 = solar_watt * input$efficency * input$m2) %>%
+      mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
+      mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
+      group_by(day) %>% 
+      summarise(e = mean(e1), v = mean(v1)) %>% 
+      mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
+      mutate(month = month(date)) %>% 
+      group_by(month) %>%
+      summarize(em = sum(e), vm = sum(v)) %>% 
+      ggplot(aes(x = month)) +
+      geom_line(aes(y = em),stat = "identity") +
+      geom_line(aes(y = vm),stat = "identity") +
+      geom_point(aes(y = em),stat = "identity") +
+      geom_point(aes(y = vm),stat = "identity")
+        
+  })
+  
+  
   output$radiation_chart <- renderPlot({
     data <- filtering()
     data %>%
@@ -157,7 +179,7 @@ function(input, output) {
       mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>%
       summarize(avg = mean(solar_watt, na.rm = TRUE) * input$m2, e = mean(e1), v = mean(v1), stdv1 = sd(v1, na.rm = TRUE) , slp = mean(consumw1)) %>%
-      mutate(date = as.POSIXct(paste0("2019-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
+      mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       ggplot() + 
       aes(x = date) +
       geom_smooth(aes(y = slp, colour = "Standardlastrofil  p.a")) +
