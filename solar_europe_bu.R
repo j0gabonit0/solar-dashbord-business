@@ -221,33 +221,20 @@ solar_europe_de_nuts %>%
         mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
         mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
         group_by(day) %>%
-        summarise(e = mean(e1), v = mean(v1)) %>% 
+        summarise(e = mean(e1), eq = sum(e1), v = mean(v1)) %>% 
         mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
         mutate(month = month(date)) %>% 
         group_by(month) %>% 
-        summarize(em = sum(e), vm = sum(v))#%>%
+        summarize(em = floor(sum(e)), vm = floor((sum(v)))) %>% 
+        mutate(em_perc = em/sum(em,na.rm = TRUE)) %>% 
+        mutate(vm_perc = vm/sum(vm,na.rm = TRUE)) %>% 
+        select(-em,-vm) %>% 
           ggplot(j, aes(x = month)) +
           geom_line(aes(y = em),stat = "identity") +
-          geom_line(aes(y = vm),stat = "identity") 
-          
-      melt(j,id.var= "month")
-      ggplot(j, aes(x = month, y = em, fill = variable)) + 
-        
-      geom_bar(stat = "identity", width = 0.7, colour = "blue", fill=rgb(0.1,0.4,0.5,0.7))
-      
-      
-      
-      specie <- c(rep("month" , 12) )
-      condition <- rep(c("em" , "vm") , 12)
-      value <- abs(rnorm(12,6,12))
-      data <- data.frame(specie,condition,value)
-      
-      # Stacked + percent
-      ggplot(data, aes(fill=condition, y=value, x=specie)) + 
-        geom_bar(position="fill", stat="identity")
-      
-      
-      
-      
-      
+          geom_line(aes(y = vm),stat = "identity") +
+          geom_text(mapping = aes(x = month, y = em, label = em)) +
+          geom_text(mapping = aes(x = month, y = vm, label = vm))
+            
+            
+    
       

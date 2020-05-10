@@ -24,6 +24,8 @@ body <- dashboardBody(
   plotOutput("radiation_chart"),
   plotOutput("bar_chart"),
   hr( colour = "red"),
+  fluidPage(fluidRow(column(12, div(dataTableOutput("dataTable"))))),
+  hr( colour = "red"),
   fluidRow(
       # Dynamic valueBoxes
       valueBoxOutput("kwhm2", width = 4),

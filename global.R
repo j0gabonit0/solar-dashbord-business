@@ -5,6 +5,9 @@ library(ggplot2)
 library(scales)
 library(dplR)
 library(devtools)
+library(DT)
+library(lubridate)
+library(reshape2)
 
 #path <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv"
 #path_slpc <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/slpc_c.csv"
@@ -14,7 +17,7 @@ library(devtools)
 path <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv"
 #path_slpc <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/slpc_c.csv"
 #path_slpc_h <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/slpc_h.csv"
-path_sedn_slpc <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_w3.csv"
+path_sedn_slpc <- "C:/Users/saschaw/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_w3.csv"
 
 
 

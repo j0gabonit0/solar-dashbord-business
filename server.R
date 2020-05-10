@@ -3,13 +3,18 @@
 # Annahmen für die Berechnung - Diese sind konservativ gehalten, sodass voraussichtlich die untere Grenze der erwarteten Gewinne errechnet wird.
 
 # Sicherheitsfaktor 95% der voraussichtlichen Leistung - Dies wird pauschal angesetzt.
-sf = 0.95
+sf = 1/0.96
 
 # Leistungsabnahme des Moduls über 20 Jahre durchschnittlich 5% = 20 * 5% = 10%. Wenn die Abnahme über 20 Jahre 10 % ist, dann kann man den Startwert der Module * 95% rechnen. - Dies entspricht den Erfahrungswerten aus den Modulangaben der Hersteller
 module_reduce = 0.90
 
 # Quadratmeter für 1 kWp
 m2kwp = 5
+
+#Eigenverbrauch  = consum
+#Netzeinspeisung = sale
+
+
 
 # Funktionen
 
@@ -152,7 +157,7 @@ function(input, output) {
     data <- filtering()
     data %>%
       mutate(day = utc_timestamp %>% as.character() %>% substr(6,19)) %>%
-      mutate(swm2 = solar_watt * input$efficency * input$m2) %>%
+      mutate(swm2 = solar_watt * input$efficency * input$m2 * sf * module_reduce) %>%
       mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
       mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>% 
@@ -160,12 +165,16 @@ function(input, output) {
       mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       mutate(month = month(date)) %>% 
       group_by(month) %>%
-      summarize(em = sum(e), vm = sum(v)) %>% 
+      summarize(em = floor(sum(e)), vm = floor(sum(v))) %>% 
       ggplot(aes(x = month)) +
-      geom_line(aes(y = em),stat = "identity") +
-      geom_line(aes(y = vm),stat = "identity") +
+      geom_line(aes(y = em, colour = "Eigenverbrauch in kWh"),stat = "identity") +
+      geom_line(aes(y = vm, colour = "Netzeinspeisung in kWh"),stat = "identity") +
       geom_point(aes(y = em),stat = "identity") +
-      geom_point(aes(y = vm),stat = "identity")
+      geom_point(aes(y = vm),stat = "identity") +
+      geom_text(mapping = aes(x = month, y = em, label = em)) +
+      geom_text(mapping = aes(x = month, y = vm, label = vm)) +
+      xlab("") +
+      ylab("")
         
   })
   
@@ -174,7 +183,7 @@ function(input, output) {
     data <- filtering()
     data %>%
       mutate(day = utc_timestamp %>% as.character() %>% substr(6,19)) %>%
-      mutate(swm2 = solar_watt * input$efficency * input$m2) %>%
+      mutate(swm2 = solar_watt * input$efficency * input$m2 * sf * module_reduce) %>%
       mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
       mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>%
@@ -188,4 +197,26 @@ function(input, output) {
       xlab("") +
       ylab("")
   })
+
+
+
+ output$dataTable <- renderDT({
+    data <- filtering()
+    data %>% 
+      mutate(day = utc_timestamp %>% as.character() %>% substr(6,19)) %>%
+      mutate(swm2 = solar_watt * input$efficency * input$m2 * sf * module_reduce) %>%
+      mutate(consum = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
+      mutate(sale = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
+      group_by(day) %>% 
+      summarise(consum_mean = mean(consum), sale_mean = mean(sale)) %>% 
+      mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
+      mutate(month = month(date)) %>% 
+      group_by(month) %>%
+      summarize(consum_month = floor(sum(consum_mean)), sale_month = floor(sum(sale_mean))) %>% 
+      mutate(consum_perc = (consum_month / (sum(consum_month,na.rm = TRUE) + sum(sale_month,na.rm = TRUE)))) %>% 
+      mutate(sale_perc = (sale_month / (sum(sale_month,na.rm = TRUE) + sum(consum_month,na.rm = TRUE))))
+
+  })
+  
 }
+
