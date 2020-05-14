@@ -39,7 +39,8 @@ function(input, output) {
        summarise(
         ms = sum(solar_watt) / years * input$efficency * input$m2 * sf * module_reduce, 
         kwhm2 = sum(solar_watt) / years * input$efficency * sf * module_reduce,
-        kwhkwp = sum(solar_watt) / years * input$efficency * sf * m2kwp * module_reduce)
+        kwhkwp = sum(solar_watt) / years * input$efficency * sf * m2kwp * module_reduce,
+        consum_proof = sum(consumw1, na.rm = TRUE) / years)
    })
    
    
@@ -94,6 +95,11 @@ function(input, output) {
    output$kwhkwp <- renderInfoBox({
      kwhyield <- kwhyield()
      valueBox("Erzeugte kWh pro kWp",prettyNum(kwhyield$kwhkwp))
+   })
+   
+   output$consum_proof <- renderInfoBox({
+     kwhyield <- kwhyield()
+     valueBox("Verbrauchte kWh p.a.",prettyNum(kwhyield$consum_proof))
    })
   
   output$ms <- renderInfoBox({
@@ -165,7 +171,7 @@ function(input, output) {
       mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       mutate(month = month(date)) %>% 
       group_by(month) %>%
-      summarize(em = floor(sum(e)), vm = floor(sum(v))) %>% 
+      summarize(em = floor(sum(e, na.rm = TRUE)), vm = floor((sum(v, na.rm = TRUE)))) %>% 
       ggplot(aes(x = month)) +
       geom_line(aes(y = em, colour = "Eigenverbrauch in kWh"),stat = "identity") +
       geom_line(aes(y = vm, colour = "Netzeinspeisung in kWh"),stat = "identity") +
@@ -208,11 +214,11 @@ function(input, output) {
       mutate(consum = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
       mutate(sale = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>% 
-      summarise(consum_mean = mean(consum), sale_mean = mean(sale)) %>% 
+      summarise(consum_mean = mean(consum, na.rm = TRUE), sale_mean = mean(sale,na.rm = TRUE)) %>% 
       mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       mutate(month = month(date)) %>% 
       group_by(month) %>%
-      summarize(consum_month = floor(sum(consum_mean)), sale_month = floor(sum(sale_mean))) %>% 
+      summarize(consum_month = floor(sum(consum_mean, na.rm = TRUE)), sale_month = floor(sum(sale_mean, na.rm = TRUE))) %>% 
       mutate(consum_perc = (consum_month / (sum(consum_month,na.rm = TRUE) + sum(sale_month,na.rm = TRUE)))) %>% 
       mutate(sale_perc = (sale_month / (sum(sale_month,na.rm = TRUE) + sum(consum_month,na.rm = TRUE))))
 

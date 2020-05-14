@@ -141,9 +141,14 @@ solar_europe_de_nuts %>%
 #########################
 
   
-  #1. Das Standardlastprfil des Konsumenten auf eine Stunde in kwh umrechnen
+  #1. Das Standardlastprfil des Konsumenten auf eine Stunde in kwh 
   
-  path_slpc_r <- "/Users/sascha/Nextcloud/17_solar_dashbord/slpc.csv"
+  
+  
+  ###Pro Tag sind es 24 * 4 = 92 Werte, pro Jahr 365 * 24 * 4 = 35.040 Messwerte. Jeder Viertelstundenwert gibt Ihre durchschnittliche Leistung in KW an. 
+  ###Addieren Sie die 4 Werte einer Stunde, und teilen Sie das Ergebnis durch 4. Damit erhalten Sie den Wert eines Kilowatt pro Stunde = kWh.
+  
+  path_slpc_r <- "C:/Users/saschaw/Nextcloud/17_solar_dashbord/solar-dashbord-business/stursula_gym.csv"
   slpc_r <- read_delim(file = path_slpc_r, delim = ";")
   slpc_r$Datum <- as.Date(slpc_r$Datum,"%Y-%m-%d")
   
@@ -152,9 +157,9 @@ solar_europe_de_nuts %>%
   
   slpc_r_2 <- slpc_r %>% #Das Standardlastprofil von 15 Minuten auf eine Stunde umrechnen
     mutate(t = as.POSIXct(paste(Datum, Zeit), format="%Y-%m-%d %H:%M:%S")) %>%
-    group_by(datetime = floor_date(t, unit = "hour")) %>%
-    summarize( kwh = sum(kw))
-  write_csv(slpc_r_2,"/Users/sascha/Nextcloud/17_solar_dashbord/slpc_h.csv")
+    group_by(date = floor_date(t, unit = "hour")) %>%
+    summarize( kwh = sum(kw)/4)
+  write_csv(slpc_r_2,"C:/Users/saschaw/Nextcloud/17_solar_dashbord/solar-dashbord-business/stursula_1.csv")
   
   
 #########################
@@ -166,36 +171,32 @@ solar_europe_de_nuts %>%
   # die Datensätze müssen gejoint werden, dabei muss das datum entfernt werden und nur auf stundenbasis gejoint.
   
   
-  slp_w3 <- read_delim("/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/slp_w3.csv", delim = ",")
-  slp_w3 <- read_delim("C:/Users/corvi/Downloads/werk3.csv", delim = ",")
-  solar_europe_de_nuts <- read_delim("C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv", delim = ",")
+  slpc_r_2 <- read_delim("/Users/saschaw/Nextcloud/17_solar_dashbord/solar-dashbord-business/stursula_1.csv", delim = ",")
+  solar_europe_de_nuts <- read_delim("C:/Users/saschaw/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv", delim = ",")
   
   #1 Solarstrahlungsdaten um spalte day erweitert
   sedn_t <- solar_europe_de_nuts %>%
-    mutate(day = utc_timestamp %>% as.character() %>% substr(5,18))
+    mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
   
   #2 Standardlastprofil pro Stunde um day erweitert
-   sedn_slp_werk1 <- slp_w3 %>%
-    mutate(day = date %>% as.character() %>% substr(0,16))%>%
-    mutate(day1 = date %>% as.character() %>% substr(20,22)) %>% 
-    unite("z", day, day1, sep = "") %>% 
-    select(-date) %>% 
-    mutate(date = as.POSIXct(z, format="%d-%m-%Y %H:%M:%S")) %>% 
+   sedn_slp_werk1 <- slpc_r_2 %>%
+    mutate(date = as.POSIXct(date, format="%d-%m-%Y %H:%M:%S")) %>%
+    mutate(day = date %>% as.character() %>% substr(5,19))#%>%
+    colnames(sedn_slp_werk1)[2] <- "consumw1"
     select(-z) %>% 
-    mutate(day = date %>% as.character() %>% substr(5,18))
-    colnames(sedn_slp_werk1)[1] <- "consumw1"
+    mutate(day = date %>% as.character() %>% substr(5,19))
+    
     
   
   #3Standardlastprofil an Solarstrahlungsdaten gejoint
  
-  sedn_slpc <- left_join(sedn_t, sedn_slp_werk1, by = "day")%>% 
-    select(-date, -day)
+  sedn_slpc <- left_join(sedn_t, sedn_slp_werk1, by = "day")
   
   #4 Neue Datentabelle in csv geschrieben
   write_csv(sedn_slpc,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_w3.csv")
 ##########################################################################################################
   
-  sedn_slpc <- read_delim("C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_w3.csv", delim = ",")
+  sedn_slpc <- read_delim("C:/Users/saschaw/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_w3.csv", delim = ",")
   #if schleife Eigenverbrauch
   #Selbstverbrauch = 1. Produktion < Verbrauch = Produktion e1
   #Selbstverbrauch = 2. Produktion > Verbrauch = Verbrauch e2
@@ -225,10 +226,10 @@ solar_europe_de_nuts %>%
         mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
         mutate(month = month(date)) %>% 
         group_by(month) %>% 
-        summarize(em = floor(sum(e)), vm = floor((sum(v)))) %>% 
+        summarize(em = floor(sum(e, na.rm = TRUE)), vm = floor((sum(v, na.rm = TRUE)))) #%>% 
         mutate(em_perc = em/sum(em,na.rm = TRUE)) %>% 
         mutate(vm_perc = vm/sum(vm,na.rm = TRUE)) %>% 
-        select(-em,-vm) %>% 
+        select(-em,-vm) #%>% 
           ggplot(j, aes(x = month)) +
           geom_line(aes(y = em),stat = "identity") +
           geom_line(aes(y = vm),stat = "identity") +

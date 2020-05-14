@@ -29,6 +29,7 @@ body <- dashboardBody(
   fluidRow(
       # Dynamic valueBoxes
       valueBoxOutput("kwhm2", width = 4),
+      valueBoxOutput("consum_proof", width = 4),
       valueBoxOutput("kwhkwp", width = 4)),
   hr(),
   fluidRow(
