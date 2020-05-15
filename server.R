@@ -214,13 +214,14 @@ function(input, output) {
       mutate(consum = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
       mutate(sale = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>% 
-      summarise(consum_mean = mean(consum, na.rm = TRUE), sale_mean = mean(sale,na.rm = TRUE)) %>% 
+      summarise(consum_mean = mean(consum, na.rm = TRUE), sale_mean = mean(sale,na.rm = TRUE), swm2 = mean(swm2,na.rm = TRUE), consumw1 = mean(consumw1,na.rm = TRUE)) %>% 
       mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       mutate(month = month(date)) %>% 
       group_by(month) %>%
-      summarize(consum_month = floor(sum(consum_mean, na.rm = TRUE)), sale_month = floor(sum(sale_mean, na.rm = TRUE))) %>% 
-      mutate(consum_perc = (consum_month / (sum(consum_month,na.rm = TRUE) + sum(sale_month,na.rm = TRUE)))) %>% 
-      mutate(sale_perc = (sale_month / (sum(sale_month,na.rm = TRUE) + sum(consum_month,na.rm = TRUE))))
+      summarize(consum_month = floor(sum(consum_mean, na.rm = TRUE)), sale_month = floor(sum(sale_mean, na.rm = TRUE)), Erzeugung_Anlage = floor(sum(swm2,na.rm = TRUE)), Strombedarf = floor(sum(consumw1,na.rm = TRUE))) %>% 
+      mutate(consum_perc = 100 * (consum_month / (sum(consum_month,na.rm = TRUE) + sum(sale_month,na.rm = TRUE)))) %>% 
+      mutate(sale_perc = 100 * (sale_month / (sum(sale_month,na.rm = TRUE) + sum(consum_month,na.rm = TRUE))))
+      
 
   })
   
