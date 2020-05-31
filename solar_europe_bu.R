@@ -236,6 +236,22 @@ solar_europe_de_nuts %>%
           geom_text(mapping = aes(x = month, y = em, label = em)) +
           geom_text(mapping = aes(x = month, y = vm, label = vm))
             
-            
-    
+          
+          
+         jop <- read_csv("/Users/sascha/NC/04_PV/07_Projekte/Dorsten_STursula/Realschule/stursula_test.csv")
+         sedn_slpc <- sedn_slpc %>%
+           mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
+         l <- jop %>% 
+          mutate(date_full = seq(ymd_hm('2019-01-01 00:00'),ymd_hm('2019-12-31 23:45'), by = '15 mins')) %>% 
+           mutate(date_full = as.POSIXct(date_full, format="%Y-%m-%d %H:%M:%S")) %>% 
+           group_by(date = floor_date(date_full, unit = "hour")) %>%
+           summarize( kwh = sum(kwh)/4) %>% 
+           mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>% 
+           mutate(day = date %>% as.character() %>% substr(5,19)) %>% 
+           right_join(sedn_slpc,by = "day")  %>% 
+           select(-day,-date) %>% 
+           rename(consumw1 = kwh) %>% 
+           select(-country,-temperature,-global_radiation) 
+ 
+        
       
