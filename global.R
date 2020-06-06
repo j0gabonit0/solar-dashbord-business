@@ -17,9 +17,9 @@ library(reshape2)
 path <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv"
 #path_slpc <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/slpc_c.csv"
 #path_slpc_h <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/slpc_h.csv"
-#path_sedn_slpc <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
+path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
 #path_sedn_slpc <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
-path_sedn_slpc <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
+#path_sedn_slpc <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
 
 
 

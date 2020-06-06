@@ -18,8 +18,8 @@ m2kwp = 5
 
 # Funktionen
 
-function(input, output) {
- 
+function(input, output, session) {
+  
   filtering <- reactive({
     startyear <- as.Date(input$date[1]) %>% as.character() %>% substr(1,4) %>% as.numeric()
     endyear <- as.Date(input$date[2]) %>% as.character() %>% substr(1,4) %>% as.numeric()
@@ -83,15 +83,16 @@ function(input, output) {
        
   })
    
+   
 
      # This reactive function will take the inputs from UI.R and use them for read.table() to read the data from the file. It returns the dataset in the form of a dataframe.
      # file$datapath -> gives the path of the file
-     data <- reactive({
+     datacsv <- reactive({
        file1 <- input$file
        if(is.null(file1)){return()} 
        read.table(file=file1$datapath, sep=input$sep, header = input$header, stringsAsFactors = input$stringAsFactors)
        data<-read.csv(input$file$datapath)
-       data<- data %>% 
+       datacsv1 <- data %>% 
          mutate(date = seq(from = as.Date("2019-01-01"), to = as.Date("2019-12-31"), by = 'day')) %>% 
          mutate(date_full = seq(ymd_hm('2019-01-01 00:00'),ymd_hm('2019-12-31 23:45'), by = '15 mins')) %>% 
          mutate(date_full = as.POSIXct(date_full, format="%Y-%m-%d %H:%M:%S")) %>% 
@@ -99,50 +100,40 @@ function(input, output) {
          summarize( kwh = sum(kwh)/4) %>% 
          mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>% 
          mutate(day = date %>% as.character() %>% substr(5,19)) %>% 
-         right_join(data1$sedn_slpc,by = "day") %>% 
+         right_join(sedn_slpc,by = "day") %>% 
          select(-day,-date) %>% 
          rename(consumw1 = kwh) %>% 
          select(-country,-temperature,-global_radiation) 
        
      })
      
-     data1 <- reactive({
-       sedn_t <- sedn_slpc %>%
+     newcsv<- reactive({
+       file1 <- input$file
+       if(is.null(file1)){return()} 
+       read.table(file=file1$datapath, sep=input$sep, header = input$header, stringsAsFactors = input$stringAsFactors)
+       data<-read.csv(input$file$datapath)
+       sedn_slpc <- sedn_slpc %>%
          mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
-       
+       data %>% 
+         mutate(date = seq(from = as.Date("2019-01-01"), to = as.Date("2019-12-31"), by = 'day')) %>% 
+         mutate(date_full = seq(ymd_hm('2019-01-01 00:00'),ymd_hm('2019-12-31 23:45'), by = '15 mins')) %>% 
+         mutate(date_full1 = as.POSIXct(date_full, format="%Y-%m-%d %H:%M:%S")) %>% 
+         group_by(date = floor_date(date_full1, unit = "hour")) %>%
+         summarize( kwh = sum(kw)/4) %>% 
+         mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>% 
+         mutate(day = date %>% as.character() %>% substr(5,19)) %>% 
+         right_join(sedn_slpc,by = "day") %>% 
+         select(-day,-date) %>% 
+         rename(consumw1 = kwh) %>%
+         summarise(jo = max(.[[3]], na.rm = TRUE))
+       })
+     
+     output$jo <- renderInfoBox({
+       newcsv <- newcsv()
+       valueBox("jo",prettyNum(newcsv$jo))
      })
      
-     
-     
-     # this reactive output contains the summary of the dataset and display the summary in table format
-     output$filedf <- renderTable({
-       if(is.null(data())){return ()}
-       input$file
-     })
-     
-     # this reactive output contains the summary of the dataset and display the summary in table format
-     output$sum <- renderTable({
-       if(is.null(data())){return ()}
-       summary(data())
-       
-     })
-     
-     # This reactive output contains the dataset and display the dataset in table format
-     output$table <- renderTable({
-       if(is.null(data())){return ()}
-       data()
-     })
-     
-     # the following renderUI is used to dynamically generate the tabsets when the file is loaded. Until the file is loaded, app will not show the tabset.
-     output$tb <- renderUI({
-       if(is.null(data()))
-         h5("Powered by", tags$img(src='RStudio-Ball.png', heigth=200, width=200))
-       else
-         tabsetPanel(tabPanel("About file", tableOutput("filedf")),tabPanel("Data", tableOutput("table")),tabPanel("Summary", tableOutput("sum")))
-     })
-   
-   
-   
+     output$files <- renderTable(input$file)
 # Output
    
    output$kwhm2 <- renderInfoBox({
@@ -213,8 +204,13 @@ function(input, output) {
   output[["gk"]] <- renderInfoBox({
     invest <- invest()
     valueBox("Gesamtkosten € p.a.",prettyNum(invest[["gk"]]))
+    
   })
 
+  
+  
+  
+  
 # Plot
   
   output$bar_chart <- renderPlot({
