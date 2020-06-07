@@ -11,36 +11,40 @@ module_reduce = 0.90
 # Quadratmeter für 1 kWp
 m2kwp = 5
 
+years = 20
+
 #Eigenverbrauch  = consum
 #Netzeinspeisung = sale
-
-
 
 # Funktionen
 
 function(input, output, session) {
   
+
   filtering <- reactive({
-    startyear <- as.Date(input$date[1]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-    endyear <- as.Date(input$date[2]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-    years <- endyear - startyear + 1
+    #startyear <- as.Date(input$date[1]) %>% as.character() %>% substr(1,4) %>% as.numeric()
+    #endyear <- as.Date(input$date[2]) %>% as.character() %>% substr(1,4) %>% as.numeric()
+    #years = (as.Date(input$date[2]) %>% as.character() %>% substr(1,4) %>% as.numeric()) - (as.Date(input$date[1]) %>% as.character() %>% substr(1,4) %>% as.numeric()) + 1
     sedn_slpc %>%
       filter(Stadt == input$selected_country) %>%
       filter(utc_timestamp >= paste0(startyear, "-01-01 00:00:00"), utc_timestamp <= paste0(endyear, "-12-31 24:00:00"))
   })
    
+  
    kwhyield <-reactive({
-     startyear <- as.Date(input$date[1]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-     endyear <- as.Date(input$date[2]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-     years <- endyear - startyear + 1
-     sedn_slpc %>%
-       filter(Stadt == input$selected_country) %>%
-       filter(utc_timestamp >= paste0(startyear, "-01-01 00:00:00"), utc_timestamp <= paste0(endyear, "-12-31 24:00:00")) %>% 
+     filtering() %>% 
+     #startyear <- as.Date(input$date[1]) %>% as.character() %>% substr(1,4) %>% as.numeric()
+    # endyear <- as.Date(input$date[2]) %>% as.character() %>% substr(1,4) %>% as.numeric()
+     #years <- endyear - startyear + 1
+     #sedn_slpc %>%
+       #filter(Stadt == input$selected_country) %>%
+      # filter(utc_timestamp >= paste0(startyear, "-01-01 00:00:00"), utc_timestamp <= paste0(endyear, "-12-31 24:00:00")) %>% 
        summarise(
         ms = sum(solar_watt) / years * input$efficency * input$m2 * sf * module_reduce, 
         kwhm2 = sum(solar_watt) / years * input$efficency * sf * module_reduce,
         kwhkwp = sum(solar_watt) / years * input$efficency * sf * m2kwp * module_reduce,
-        consum_proof = sum(consumw1, na.rm = TRUE) / years)
+        consum_proof = (sum(consumw1, na.rm = TRUE) / years)
+        )
    })
    
    
@@ -270,7 +274,7 @@ function(input, output, session) {
       summarize(consum_month = floor(sum(consum_mean, na.rm = TRUE)), sale_month = floor(sum(sale_mean, na.rm = TRUE)), Erzeugung_Anlage = floor(sum(swm2,na.rm = TRUE)), Strombedarf = floor(sum(consumw1,na.rm = TRUE))) %>% 
       mutate(consum_perc = 100 * (consum_month / (sum(consum_month,na.rm = TRUE) + sum(sale_month,na.rm = TRUE)))) %>% 
       mutate(sale_perc = 100 * (sale_month / (sum(sale_month,na.rm = TRUE) + sum(consum_month,na.rm = TRUE))))
-      
+   
 
   })
  
@@ -281,7 +285,7 @@ function(input, output, session) {
    data<-read.csv(input$file$datapath)
    sedn_slpc <- sedn_slpc %>%
      mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
-     data %>% 
+   data %>% 
      mutate(date_full = seq(ymd_hm('2019-01-01 00:00'),ymd_hm('2019-12-31 23:45'), by = '15 mins')) %>% 
      mutate(date_full = as.POSIXct(date_full, format="%Y-%m-%d %H:%M:%S")) %>% 
      group_by(date = floor_date(date_full, unit = "hour")) %>%
