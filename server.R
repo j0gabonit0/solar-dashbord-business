@@ -11,7 +11,7 @@ module_reduce = 0.90
 # Quadratmeter für 1 kWp
 m2kwp = 5
 
-years = 20
+years = 21
 
 #Eigenverbrauch  = consum
 #Netzeinspeisung = sale
@@ -32,13 +32,7 @@ function(input, output, session) {
    
   
    kwhyield <-reactive({
-     filtering() %>% 
-     #startyear <- as.Date(input$date[1]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-    # endyear <- as.Date(input$date[2]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-     #years <- endyear - startyear + 1
-     #sedn_slpc %>%
-       #filter(Stadt == input$selected_country) %>%
-      # filter(utc_timestamp >= paste0(startyear, "-01-01 00:00:00"), utc_timestamp <= paste0(endyear, "-12-31 24:00:00")) %>% 
+    filtering() %>% 
        summarise(
         ms = sum(solar_watt) / years * input$efficency * input$m2 * sf * module_reduce, 
         kwhm2 = sum(solar_watt) / years * input$efficency * sf * module_reduce,
@@ -55,12 +49,7 @@ function(input, output, session) {
    # 4 Netzeinspeisung * EEG-Umlage 
    
    erlös <- reactive({
-     startyear <- as.Date(input$date[1]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-     endyear <- as.Date(input$date[2]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-     years <- endyear - startyear + 1
-     sedn_slpc %>%
-       filter(Stadt == input$selected_country) %>%
-       filter(utc_timestamp >= paste0(startyear, "-01-01 00:00:00"), utc_timestamp <= paste0(endyear, "-12-31 24:00:00")) %>% 
+     filtering() %>% 
        mutate(swm2 = solar_watt * input$m2 * input$efficency * sf * module_reduce) %>%
        mutate(e1 = ifelse(swm2 < consumw1, swm2, consumw1)) %>%
        mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
@@ -78,17 +67,12 @@ function(input, output, session) {
    # 1 Annuität
    # 2 Laufende Kosten
    invest <- reactive({
-     startyear <- as.Date(input$date[1]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-     endyear <- as.Date(input$date[2]) %>% as.character() %>% substr(1,4) %>% as.numeric()
-     years <- endyear - startyear + 1
      annu <- (input[["invest"]] * input[["m2"]]/ m2kwp) * (1 - input[["ek"]]) * ((((1+input[["zi"]])^years)*input[["zi"]])/(((1+input[["zi"]])^years)-1))
      sedn_slpc %>%
        summarise(cy = (input[["m2"]]/ m2kwp * input[["lk"]]), zins = annu, gk = zins + cy)
        
   })
    
-   
-
      # This reactive function will take the inputs from UI.R and use them for read.table() to read the data from the file. It returns the dataset in the form of a dataframe.
      # file$datapath -> gives the path of the file
     
