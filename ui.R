@@ -15,7 +15,7 @@ sidebar <- dashboardSidebar(
       numericInput(inputId = "zi", label = "9. Zinsen", value = "0.02"),
       numericInput(inputId = "ek", label = "10. Anteil Eigenkapital", value = "0"),
       fileInput("file","Upload the file"),
-      checkboxInput(inputId = 'header', label = 'Header', value = FALSE),
+      checkboxInput(inputId = 'header', label = 'Header', value = TRUE),
       checkboxInput(inputId = "stringAsFactors", "stringAsFactors", FALSE),
       radioButtons(inputId = 'sep', label = 'Separator', choices = c(Comma=',',Semicolon=';',Tab='\t', Space=''), selected = ','),
     sidebarMenuOutput("sbmenu")
@@ -25,31 +25,39 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
        h3("Photovoltaik Rendite Rechner", align = "center"),
-       plotOutput("bar_chart"),
-       hr( colour = "red"),
+              box(
+              plotOutput("bar_chart"), 
+              width = 6, 
+              title = "Verhältnis Eigenverbrauch/Netzeinspeisung", 
+              background = "green"),
+              box(
+              plotOutput("radiation_chart"), 
+              width = 6,
+              title = "Stromnetznutzung", 
+              background = "yellow"),
+       hr(),
        fluidPage(fluidRow(column(12, div(dataTableOutput("dataTable"))))),
-       hr( colour = "red"),
-              plotOutput("radiation_chart"),
-              hr(),
+       fluidPage(fluidRow(column(10, div(dataTableOutput("dtcsv"))))),
+       hr(),
                fluidRow(
                valueBoxOutput("kwhm2", width = 4),
                valueBoxOutput("consum_proof", width = 4),
                valueBoxOutput("kwhkwp", width = 4)),
-             hr(),
+        hr(),
              fluidRow(
                valueBoxOutput("ekwh", width = 4),
                valueBoxOutput("vkwh", width = 4),
                valueBoxOutput("ms", width = 4)),
-             hr(),
+        hr(),
              fluidRow(
                valueBoxOutput("ekwh_percent", width = 4),
                valueBoxOutput("vkwh_percent", width = 4)),
-             hr(),
+        hr(),
              fluidRow(
                valueBoxOutput("ev", width = 4),
                valueBoxOutput("es", width = 4),
                valueBoxOutput("ge", width = 4)),
-             hr(),
+        hr(),
              fluidRow(
                valueBoxOutput("cy", width = 4),
                valueBoxOutput("result", width = 4),

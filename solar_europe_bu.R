@@ -238,20 +238,19 @@ solar_europe_de_nuts %>%
             
           
           
-         jop <- read_delim("C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/proof_Kopie.csv",delim = ";")
+         jop <- read_delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/proof_Kopie.csv",delim = ";")
          sedn_slpc <- sedn_slpc %>%
            mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
          l <- jop %>% 
-          mutate(date_full = seq(ymd_hm('2019-01-01 00:00'),ymd_hm('2019-12-31 23:45'), by = '15 mins')) %>% 
+           mutate(date_full = seq(ymd_hm('2019-01-01 00:00'),ymd_hm('2019-12-31 23:45'), by = '15 mins')) %>% 
            mutate(date_full = as.POSIXct(date_full, format="%Y-%m-%d %H:%M:%S")) %>% 
            group_by(date = floor_date(date_full, unit = "hour")) %>%
-           summarize( kwh = sum(kw)/4) %>% 
+           summarize( kwh = sum(kwh)/4) #%>% 
            mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>% 
            mutate(day = date %>% as.character() %>% substr(5,19)) %>% 
            right_join(sedn_slpc,by = "day")  %>% 
-           select(-day,-date) %>% 
-           rename(consumw1 = kwh) %>% 
-           select(-country,-temperature,-global_radiation) 
+           select(-day,-date,-consumw1) %>% 
+           rename(consumw1 = kwh)
  
         
       

@@ -87,26 +87,7 @@ function(input, output, session) {
 
      # This reactive function will take the inputs from UI.R and use them for read.table() to read the data from the file. It returns the dataset in the form of a dataframe.
      # file$datapath -> gives the path of the file
-     datacsv <- reactive({
-       file1 <- input$file
-       if(is.null(file1)){return()} 
-       read.table(file=file1$datapath, sep=input$sep, header = input$header, stringsAsFactors = input$stringAsFactors)
-       data<-read.csv(input$file$datapath)
-       datacsv1 <- data %>% 
-         mutate(date = seq(from = as.Date("2019-01-01"), to = as.Date("2019-12-31"), by = 'day')) %>% 
-         mutate(date_full = seq(ymd_hm('2019-01-01 00:00'),ymd_hm('2019-12-31 23:45'), by = '15 mins')) %>% 
-         mutate(date_full = as.POSIXct(date_full, format="%Y-%m-%d %H:%M:%S")) %>% 
-         group_by(date = floor_date(date_full, unit = "hour")) %>%
-         summarize( kwh = sum(kwh)/4) %>% 
-         mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>% 
-         mutate(day = date %>% as.character() %>% substr(5,19)) %>% 
-         right_join(sedn_slpc,by = "day") %>% 
-         select(-day,-date) %>% 
-         rename(consumw1 = kwh) %>% 
-         select(-country,-temperature,-global_radiation) 
-       
-     })
-     
+    
      newcsv<- reactive({
        file1 <- input$file
        if(is.null(file1)){return()} 
@@ -115,17 +96,16 @@ function(input, output, session) {
        sedn_slpc <- sedn_slpc %>%
          mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
        data %>% 
-         mutate(date = seq(from = as.Date("2019-01-01"), to = as.Date("2019-12-31"), by = 'day')) %>% 
          mutate(date_full = seq(ymd_hm('2019-01-01 00:00'),ymd_hm('2019-12-31 23:45'), by = '15 mins')) %>% 
-         mutate(date_full1 = as.POSIXct(date_full, format="%Y-%m-%d %H:%M:%S")) %>% 
-         group_by(date = floor_date(date_full1, unit = "hour")) %>%
-         summarize( kwh = sum(kw)/4) %>% 
+         mutate(date_full = as.POSIXct(date_full, format="%Y-%m-%d %H:%M:%S")) %>% 
+         group_by(date = floor_date(date_full, unit = "hour")) %>%
+         summarize(kwh = sum(kwh)/4) %>% 
          mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>% 
          mutate(day = date %>% as.character() %>% substr(5,19)) %>% 
-         right_join(sedn_slpc,by = "day") %>% 
-         select(-day,-date) %>% 
-         rename(consumw1 = kwh) %>%
-         summarise(jo = max(.[[3]], na.rm = TRUE))
+         right_join(sedn_slpc,by = "day")  %>% 
+         select(-day,-date,-consumw1) %>% 
+         rename(consumw1 = kwh) %>% 
+         summarise(jo = sum(consumw1, na.rm = TRUE))
        })
      
      output$jo <- renderInfoBox({
@@ -134,7 +114,9 @@ function(input, output, session) {
      })
      
      output$files <- renderTable(input$file)
-# Output
+     
+     
+####  Output  ####
    
    output$kwhm2 <- renderInfoBox({
      kwhyield <- kwhyield()
@@ -234,9 +216,16 @@ function(input, output, session) {
       geom_text(mapping = aes(x = month, y = em, label = em)) +
       geom_text(mapping = aes(x = month, y = vm, label = vm)) +
       xlab("") +
-      ylab("")
+      ylab("") +
+      scale_colour_manual(name="Legende", values=c("blue", "green", "yellow")) +
+      theme(
+        panel.background = element_blank(), 
+        plot.background = element_blank(), 
+        legend.background = element_blank(),
+        legend.box.background = element_blank())
+   
         
-  })
+  }, bg = "transparent")
   
   
   output$radiation_chart <- renderPlot({
@@ -250,13 +239,19 @@ function(input, output, session) {
       summarize(avg = mean(solar_watt, na.rm = TRUE) * input$m2, e = mean(e1), v = mean(v1), stdv1 = sd(v1, na.rm = TRUE) , slp = mean(consumw1)) %>%
       mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       ggplot() + 
-      aes(x = date) +
-      geom_smooth(aes(y = slp, colour = "Standardlastrofil  p.a")) +
-      geom_smooth(aes(y = e, colour = "Eigenverbrauch")) +
-      geom_smooth(aes(y = v, colour = "Einspeisung ins Netz  p.a")) +
-      xlab("") +
-      ylab("")
-  })
+        aes(x = date) +
+        geom_smooth(aes(y = slp, colour = "Standardlastprofil")) +
+        geom_smooth(aes(y = e, colour = "Eigenverbrauch")) +
+        geom_smooth(aes(y = v, colour = "Netzeinspeisung")) +
+        xlab("") +
+        ylab("") +
+        scale_colour_manual(name="legend", values=c("blue", "green", "yellow")) +
+        theme(
+          panel.background = element_blank(), 
+          plot.background = element_blank(), 
+          legend.background = element_rect(fill = "transparent", colour = NA),
+          legend.box.background = element_rect(fill = "transparent", colour = NA))
+  }, bg = "transparent")
 
 
 
@@ -278,6 +273,27 @@ function(input, output, session) {
       
 
   })
+ 
+ output$dtcsv <- renderDT({
+   file1 <- input$file
+   if(is.null(file1)){return()} 
+   read.table(file=file1$datapath, sep=input$sep, header = input$header, stringsAsFactors = input$stringAsFactors)
+   data<-read.csv(input$file$datapath)
+   sedn_slpc <- sedn_slpc %>%
+     mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
+     data %>% 
+     mutate(date_full = seq(ymd_hm('2019-01-01 00:00'),ymd_hm('2019-12-31 23:45'), by = '15 mins')) %>% 
+     mutate(date_full = as.POSIXct(date_full, format="%Y-%m-%d %H:%M:%S")) %>% 
+     group_by(date = floor_date(date_full, unit = "hour")) %>%
+     summarize(kwh = sum(kwh)/4) %>% 
+     mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>% 
+     mutate(day = date %>% as.character() %>% substr(5,19)) %>% 
+     right_join(sedn_slpc,by = "day")  %>% 
+     select(-day,-date,-consumw1) %>% 
+     rename(consumw1 = kwh)
+   
+   
+ })
   
 }
 
