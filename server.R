@@ -1,9 +1,11 @@
 # Solar Rendite Rechner
 # Der Rendite Rechner errechnet die voraussichtlichen Gewinne einer PV-Anlage basierend auf dem Standort, dem Lastgang und der Leistung der PV-Anlage.
-# Annahmen für die Berechnung - Diese sind konservativ gehalten, sodass voraussichtlich die untere Grenze der erwarteten Gewinne errechnet wird.
-
-#Eigenverbrauch  = consum
-#Netzeinspeisung = sale
+# Die Solardaten habe ich von "https://data.open-power-system-data.org/weather_data/2019-04-09" bezogen. In dem Datenset sind stuendliche Werte fuer Solareinstrahlung,Temperatur nach europaeischen Laendern. Deutschland ist zusaetzlich in NUTS Zonen unterteilt.
+# Das Dashbord berechnet bei Beginn eine Solaranlage mit 100kWp und einem Lastprofil von 140.000 kWh p.a. Dies ist fuer oeffentliche Gebaeude wie Schulen repraesentativ. Fuer Haushalte muss dies angepasst werden. Es gibt im Internet kostenlose Lastprofile fuer viele Anwendungsfaelle wie Landwirtschaft,Haushalt oder Gewerbe.
+# Wenn ein eigenes Lastprofil vorliegt (was sehr leicht beim Stromanbieter eingefordert werden kann), kann man den Upload Button verwenden. Die Kalkulationen werden dann neu durchgefuehrt.
+# In Zukunft sollen mehrere Lastprofile zur Auswahl stehen.
+# Die Lastprofile dienen dazu, eine genauere Berechnung des Eigenverbrauchs durchzufuehren. Eure stuendlichen Verbraeuche werden mit den stuendlichen Einstrahlungswerten der PV-Anlage verrechnet. Somit koennt ihr auf stuendlicher Basis vorhersagen, wie viel Strom in den letzten 20 Jahren abgenommen worden waere.
+#
 
 # Funktionen
 
@@ -125,17 +127,17 @@ function(input, output, session) {
   
   output$kwhm2 <- renderInfoBox({
     kwhyield <- kwhyield()
-    valueBox("Erzeugte kWh pro m2", prettyNum(kwhyield$kwhm2))
+    valueBox("Erzeugte kWh pro m2", prettyNum(kwhyield$kwhm2), color = "yellow")
   })
   
   output$kwhkwp <- renderInfoBox({
     kwhyield <- kwhyield()
-    valueBox("Erzeugte kWh pro kWp", prettyNum(kwhyield$kwhkwp))
+    valueBox("Erzeugte kWh pro kWp", prettyNum(kwhyield$kwhkwp), color = "yellow")
   })
   
   output$consum_proof <- renderInfoBox({
     kwhyield <- kwhyield()
-    valueBox("Verbrauchte kWh p.a.", prettyNum(kwhyield$consum_proof))
+    valueBox("Verbrauchte kWh p.a.", prettyNum(kwhyield$consum_proof), color = "yellow")
   })
   
   output$ms <- renderInfoBox({
@@ -145,27 +147,27 @@ function(input, output, session) {
   
   output$ev <- renderInfoBox({
     erlös <- erlös()
-    valueBox("Einsparung € p.a.", prettyNum(erlös$ev))
+    valueBox("Einsparung € p.a.", prettyNum(erlös$ev), color = "green")
   })
   
   output$es <- renderInfoBox({
     erlös <- erlös()
-    valueBox("Vergütung EEG € p.a.", prettyNum(erlös$es))
+    valueBox("Vergütung EEG € p.a.", prettyNum(erlös$es), color = "green")
   })
   
   output$ekwh_percent <- renderInfoBox({
     erlös <- erlös()
-    valueBox("Anteil Eigenverbrauch", prettyNum(erlös$ekwh_percent))
+    valueBox("Anteil Eigenverbrauch", prettyNum(erlös$ekwh_percent), color = "olive")
   })
   
   output$vkwh_percent <- renderInfoBox({
     erlös <- erlös()
-    valueBox("Anteil Netzeinspeisung", prettyNum(erlös$vkwh_percent))
+    valueBox("Anteil Netzeinspeisung", prettyNum(erlös$vkwh_percent), color = "olive")
   })
   
   output$ge <- renderInfoBox({
     erlös <- erlös()
-    valueBox("Erlös € p.a.", prettyNum(erlös$ge))
+    valueBox("Erlös € p.a.", prettyNum(erlös$ge),color = "green")
   })
   
   output[["ekwh"]] <- renderInfoBox({
@@ -180,17 +182,17 @@ function(input, output, session) {
   
   output[["cy"]] <- renderInfoBox({
     invest <- invest()
-    valueBox("Laufende Kosten € p.a.", prettyNum(invest[["cy"]]))
+    valueBox("Laufende Kosten € p.a.", prettyNum(invest[["cy"]]), color = "red")
   })
   
   output[["result"]] <- renderInfoBox({
     invest <- invest()
-    valueBox("Annuitaet p.a.", prettyNum(invest[["zins"]]))
+    valueBox("Annuitaet p.a.", prettyNum(invest[["zins"]]), color = "red")
   })
   
   output[["gk"]] <- renderInfoBox({
     invest <- invest()
-    valueBox("Gesamtkosten € p.a.", prettyNum(invest[["gk"]]))
+    valueBox("Gesamtkosten € p.a.", prettyNum(invest[["gk"]]), color = "red")
     
   })
   

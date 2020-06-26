@@ -6,10 +6,10 @@ sidebar <- dashboardSidebar(
  sidebarMenu(
       selectInput(inputId = "selected_country", label = "1.Select city", choices = sort(unique(sedn_slpc$Stadt))),
       dateRangeInput(inputId = "date", label = "2.Select years", format = "yyyy", startview = "decade", start = "1990-01-01", end = "2010-12-31"),
-      numericInput(inputId = "m2", label = "3.Freie Dachfläche", value = "500"),
+      numericInput(inputId = "m2", label = "3.Freie Dachflaeche", value = "500"),
       numericInput(inputId = "efficency", label = "4.Effizienz Module", value = "0.2", min = 0, max = 1, step = 0.05),
       numericInput(inputId = "cost", label = "5.Kosten pro kWh", value = "0.16"),
-      numericInput(inputId = "price", label = "6. Einspeisevergütung", value = "0.075"),
+      numericInput(inputId = "price", label = "6. Einspeiseverguetung", value = "0.075"),
       numericInput(inputId = "invest", label = "7. Investition/kWp", value = "860"),
       numericInput(inputId = "lk", label = "8. Laufende Kosten pro Jahr/kWp", value = "10"),
       numericInput(inputId = "zi", label = "9. Zinsen", value = "0.02"),
@@ -50,8 +50,8 @@ body <- dashboardBody(
                valueBoxOutput("ms", width = 4)),
         hr(),
              fluidRow(
-               valueBoxOutput("ekwh_percent", width = 4),
-               valueBoxOutput("vkwh_percent", width = 4)),
+               valueBoxOutput("ekwh_percent", width = 6),
+               valueBoxOutput("vkwh_percent", width = 6)),
         hr(),
              fluidRow(
                valueBoxOutput("ev", width = 4),
