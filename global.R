@@ -10,23 +10,26 @@ library(lubridate)
 library(reshape2)
 library(ggpubr)
 
-#path <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv"
-#path_slpc <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/slpc_c.csv"
-#path_slpc_h <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/slpc_h.csv"
-#path_sedn_slpc <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc.csv"
 
 path <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv"
-#path_slpc <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/slpc_c.csv"
-#path_slpc_h <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/slpc_h.csv"
-#path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
+path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_short.csv"
 #path_sedn_slpc <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
-path_sedn_slpc <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
+#path_sedn_slpc <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
 
 
-
-#solar_europe_de_nuts <- read_delim(file = path,delim = ",")
-#slpc <- read_delim(file = path_slpc,delim = ",")
-#slpc_h <- read_delim(file = path_slpc_h, delim =",")
 sedn_slpc <- read_delim(path_sedn_slpc, delim = ",")
+sedn_slpc <- sedn_slpc %>%
+  mutate(day = utc_timestamp %>% as.character() %>% substr(5, 19))
+
+# Sicherheitsfaktor 95% der voraussichtlichen Leistung - Dies wird pauschal angesetzt.
+sf = 1/0.96
+
+# Leistungsabnahme des Moduls über 20 Jahre durchschnittlich 5% = 20 * 5% = 10%. Wenn die Abnahme über 20 Jahre 10 % ist, dann kann man den Startwert der Module * 95% rechnen. - Dies entspricht den Erfahrungswerten aus den Modulangaben der Hersteller
+module_reduce = 0.90
+
+# Quadratmeter für 1 kWp
+m2kwp = 5
+
+years = 21
 
 

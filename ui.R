@@ -17,7 +17,7 @@ sidebar <- dashboardSidebar(
       fileInput("file","Upload the file"),
       checkboxInput(inputId = 'header', label = 'Header', value = TRUE),
       checkboxInput(inputId = "stringAsFactors", "stringAsFactors", FALSE),
-      radioButtons(inputId = 'sep', label = 'Separator', choices = c(Comma=',',Semicolon=';',Tab='\t', Space=''), selected = ','),
+      radioButtons(inputId = 'sep', label = 'Separator', choices = c(Comma = ',',Semicolon = ';',Tab = '\t', Space = ''), selected = ','),
     sidebarMenuOutput("sbmenu")
   )
 )
