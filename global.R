@@ -11,9 +11,9 @@ library(reshape2)
 library(ggpubr)
 
 
-path <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv"
-path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_short.csv"
-#path_sedn_slpc <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
+#path <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv"
+#path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_short.csv"
+path_sedn_slpc <- "/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_short.csv"
 #path_sedn_slpc <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv"
 
 # sedn_slpc = SolarEuropeDeutschlandNuts_StandarLastProfilConsumer
