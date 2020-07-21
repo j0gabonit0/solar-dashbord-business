@@ -1,53 +1,89 @@
 ####### Sonnenstandsdiagramm ######
-# Mithilfe dieses Diagramms wird der Sonnenstand und die Sonnenhöhe erfasst. Mit der Sonnenhöhe kann der Einfalsswinkel der direktstrahlung der Sonne auf ein Photovoltaikmodul berechnet werden.
+# Mithilfe dieses Diagramms wird der Sonnenstand und die Sonnenh?he erfasst. Mit der Sonnenh?he kann der Einfalsswinkel der direktstrahlung der Sonne auf ein Photovoltaikmodul berechnet werden.
+#/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Sonnenstand
+#C:/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Sonnenstand/sun.csv
 
-sun_raw <- read.delim(file = "C:/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Sonnenstand/sun.csv", sep = ";")
+
+
+# Strahlung der Sonne auf einem PV-Modul = Direktstrahlung + diffuse Strahlung + reflektierende Strahlung
+
+direct_radiation_pv = direct_radiation * (sin(sonnenhoehe + neigung) / sin(sonnenhoehe))
+diffuse_radiation_pv = diffuse_radiation * 1/2 * (1 + cos(sonnenhoehe))
+reflective_radiation_pv = direct_radiation + diffuse_radiation * 0.5 * (1 - cos(sonnenhoehe)) * alb
+
+# LeistungsfÃ¤higkeit eines PV-Moduls ist abhÃ¤ngig von der AuÃŸentemperatur
+perform_modul = global_radiation * (0.68 * ((-0.583 * temperature + 115)/100))
+  
+#Sonnentabelle einlesen
+sun_raw <- read.delim(file = "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Sonnenstand/sun.csv", sep = ";")
+
+# Sonnentabelle Datum formatieren  
 sun <- sun_raw %>% 
-  mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>%
-  mutate(woz = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S"))
+    mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>%
+    mutate(woz = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S"))
+
+#Globalstrahlungskarte Deutschland unterteilt in Nuts einlesen  
+solar_germany_nuts <- read.delim(file ="/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv", sep = ",")
+solar_germany_nuts <- solar_germany_nuts %>% 
+  mutate(date = as.POSIXct(utc_timestamp, format = "%Y-%m-%d %H:%M:%S"))
+solar_germany_nuts-t <- solar_germany_nuts %>% 
+gsub("T","\\s",x)
+#Globale Variablen zum testen - Ort = MÃ¼nster
+latitude = 52
+alb = 0.20
+
 #Variabeln
-#Ort
-  #Münster
-#Breitengrad
-  #52*
-#Längengrad
-  #7.62
 
 #Werte
 #0,017453 ist zur Umrechnung 
 
 #Deklination
-  #Formel: 23,45*COS(0,017453*360*(daynumber+10)/365)
-
+#Formel: 23,45*COS(0,017453*360*(daynumber+10)/365)
 sun <- sun %>%
-  mutate(dec = 23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365))
+  mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365))
 
 #Zeitgleichung
-  #=60*(-0,171*SIN(0,0337*daynumber + 0,465) - 0,1299*SIN(0,01787*daynumber  - 0,168))
-
+#=60*(-0,171*SIN(0,0337*daynumber + 0,465) - 0,1299*SIN(0,01787*daynumber  - 0,168))
 sun <- sun %>%
   mutate(zeitgl = 60 * (
     -0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168)
   ))
+
 #Stundenwinkel
-  #=15*(stunde(Date)+minute(date)/60-(15-latitude)/15-12+I2/60)
+#=15*(stunde(Date)+minute(date)/60-(15-latitude)/15-12+I2/60)
 sun <- sun %>%
   mutate(stundenwinkel = 
-    15*(hour(date)+minute(date)/60-(15-52)/15-12+zeitgl/60)
+    15*(hour(date)+minute(date)/60-(15-latitude)/15-12+zeitgl/60)
   )
-#sin(Sonnenhöhe)
-  #SIN(0,017453*Latitude)*SIN(0,017453*Deklination)+COS(0,017453*Latitude)*COS(0,017453*Deklination)*COS(0,017453*Stundenwinkel)
+
+#sin(Sonnenh?he)
 #=SIN(0,017453*$B$3)*SIN(0,017453*H2)+COS(0,017453*$B$3)*COS(0,017453*H2)*COS(0,017453*J2)
 sun <- sun %>%
   mutate(
-    sin_sonnenhoehe = ((sin(0.017453 * 52) * sin(0.017453 * dec)) + (cos(0.017453 * 52) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))
+    sin_sonnenhoehe = ((sin(0.017453 * latitude) * sin(0.017453 * dec)) + (cos(0.017453 * latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))
   )
 
-#Sonnenhöhe
-#ARCSIN(sin(Sonnenhöhe))/0,017453
+#Sonnenh?he
+#ARCSIN(sin(Sonnenh?he))/0,017453
 sun <- sun %>%
   mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453) 
   )
+
 #cos(Azimut)
+# -(SIN(0,017453*Latitude)*K3-SIN(0,017453*dec))/(COS(0,017453*Latitude)*SIN(ARCCOS(sin(sonnenhoehe))))
+sun <- sun %>%
+  mutate(cos_azimut = -(sin(0.017453 * 52) * sin_sonnenhoehe - sin(0.017453 * dec)) / (cos(0.017453 * 52) * sin(acos(sin_sonnenhoehe)))
+  )
+
 #Azimut
+#WENN(Stunde + Minuten/60<=12+(15-Latitude)/15-Zeitgleichung/60;ARCCOS(cos_Azimut)/0,017453;360-ARCCOS(cos-Azimut)/0,017453)
+sun <- sun %>%
+  mutate(azimut = ifelse((hour(date) + (minute(date) / 60)) <= 12 + ((15 - latitude) / 15) - (zeitgl / 60) ,
+                         acos(cos_azimut) / 0.017453 ,
+                         360 - (acos(cos_azimut) / 0.017453)
+  )
+  )
+
+
+
 

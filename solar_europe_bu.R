@@ -23,7 +23,7 @@ install_github("rstudio/shinydashboard")
 ############
 #1.Schritt - Rohdaten in eine neue Tabelle schreiben
 
-path <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/opsd-weather_data-2019-04-09_WerteTemperatur-Einstrahlung/weather_data.csv"
+path <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/weather_data.csv"
 
 raw_opsd <- read_delim(file = path,delim = ",") # Rohdaten 
 solar_europe <-raw_opsd # Ursprungstabelle
@@ -44,14 +44,14 @@ rlang::last_error
 #3.Schritt - Überflüssige Daten entfernen Windspeed/
 
 solar_europe_de_w <- solar_europe_de %>%
-  select(-windspeed_10m) %>% # Windspeed entfernen
+  select(-windspeed_10m) #%>% # Windspeed entfernen
   mutate(global_radiation = (radiation_direct_horizontal + radiation_diffuse_horizontal) / 1000 ,
          solar_watt  = global_radiation * (0.68 * ((-0.583 * temperature + 115)/100))) %>%
   select(-radiation_direct_horizontal,-radiation_diffuse_horizontal)
 ####################################
 #3.1 Wikipedia NUTS Daten hinzufügen
 
-path_wiki <- "C:/Users/corvi/Nextcloud/17_solar_dashbord/wiki_nuts_tidy.csv"
+path_wiki <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/wiki_nuts_tidy.csv"
 wiki_nuts <- read_delim(file = path_wiki,delim = ",")
 solar_europe_de_nuts <- inner_join(solar_europe_de_w, wiki_nuts, by = c("country" = "NUTS2"))
 
@@ -75,7 +75,7 @@ slpc_d <- read_delim(file = path_slpc_d, delim = ";") %>%
 #####################################
 #3.3 Datei abspeichern für Shiny
 write_csv(slpc_d,"/Users/sascha/Nextcloud/17_solar_dashbord/slpc_d.csv")
-write_csv(solar_europe_de_nuts,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar_europe_de_nuts.csv")
+write_csv(solar_europe_de_nuts,"/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv")
 ################################################
 #4.Schritt - Durchschnittliche Sonneneinstrahlung vor Ort m2
 
