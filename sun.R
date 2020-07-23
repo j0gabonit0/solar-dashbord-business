@@ -2,7 +2,7 @@
 # Mithilfe dieses Diagramms wird der Sonnenstand und die Sonnenh?he erfasst. Mit der Sonnenh?he kann der Einfalsswinkel der direktstrahlung der Sonne auf ein Photovoltaikmodul berechnet werden.
 #/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Sonnenstand
 #C:/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Sonnenstand/sun.csv
-
+#C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage
 
 
 # Strahlung der Sonne auf einem PV-Modul = Direktstrahlung + diffuse Strahlung + reflektierende Strahlung
@@ -15,7 +15,7 @@ reflective_radiation_pv = direct_radiation + diffuse_radiation * 0.5 * (1 - cos(
 perform_modul = global_radiation * (0.68 * ((-0.583 * temperature + 115)/100))
   
 #Sonnentabelle einlesen
-sun_raw <- read.delim(file = "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Sonnenstand/sun.csv", sep = ";")
+sun_raw <- read.delim(file = "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/sun.csv", sep = ";")
 
 # Sonnentabelle Datum formatieren  
 sun <- sun_raw %>% 
@@ -23,11 +23,22 @@ sun <- sun_raw %>%
     mutate(woz = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S"))
 
 #Globalstrahlungskarte Deutschland unterteilt in Nuts einlesen  
-solar_germany_nuts <- read.delim(file ="/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv", sep = ",")
+solar_germany_nuts <- read.delim(file ="C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-2.csv", sep = ",")
 solar_germany_nuts <- solar_germany_nuts %>% 
-  mutate(date = as.POSIXct(utc_timestamp, format = "%Y-%m-%d %H:%M:%S"))
-solar_germany_nuts-t <- solar_germany_nuts %>% 
-gsub("T","\\s",x)
+  mutate(day = utc_timestamp %>% as.character() %>% substr(0,10)) %>% 
+  mutate(time = utc_timestamp %>% as.character() %>% substr(12,19)) %>% 
+  unite( x,day,time, sep = " ", remove = TRUE) %>% 
+  mutate(utc_timestamp = as.POSIXct(x, format = "%Y-%m-%d %H:%M:%S",na.rm = TRUE)) %>%
+  mutate(Stadt = Stadt %>% as.character())  %>% 
+  mutate(Bundesland = Bundesland %>% as.character()) %>% 
+  mutate(country = country %>% as.character()) %>% 
+  select(-x)
+  
+  
+  #filter(utc_timestamp >= "2010-12-31 24:00:00")
+
+
+
 #Globale Variablen zum testen - Ort = Münster
 latitude = 52
 alb = 0.20

@@ -210,7 +210,7 @@ solar_europe_de_nuts %>%
       mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       summarise(production = sum(swm2),ev = (sum(e1, na.rm = TRUE) / 1), (es = sum(v1, na.rm = TRUE) / 1), ge = ev + es, test = mean(v1)) 
       mean(sedn_slpc$consumw1)
-      write_csv(er,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/teest2.csv")j
+      write_csv(er,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/teest2.csv")
       
       #### fehlende Werte in Schaltjahren -Problem
       
