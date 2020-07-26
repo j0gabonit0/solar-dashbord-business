@@ -1,8 +1,9 @@
 ####### Sonnenstandsdiagramm ######
 # Mithilfe dieses Diagramms wird der Sonnenstand und die Sonnenh?he erfasst. Mit der Sonnenh?he kann der Einfalsswinkel der direktstrahlung der Sonne auf ein Photovoltaikmodul berechnet werden.
-#/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Sonnenstand
+/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/sun.csv
 #C:/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Sonnenstand/sun.csv
 #C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage
+
 
 
 # Strahlung der Sonne auf einem PV-Modul = Direktstrahlung + diffuse Strahlung + reflektierende Strahlung
@@ -15,7 +16,7 @@ reflective_radiation_pv = direct_radiation + diffuse_radiation * 0.5 * (1 - cos(
 perform_modul = global_radiation * (0.68 * ((-0.583 * temperature + 115)/100))
   
 #Sonnentabelle einlesen
-sun_raw <- read.delim(file = "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/sun.csv", sep = ";")
+sun_raw <- read.delim(file = "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/sun.csv", sep = ";")
 
 # Sonnentabelle Datum formatieren  
 sun <- sun_raw %>% 
@@ -23,7 +24,7 @@ sun <- sun_raw %>%
     mutate(woz = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S"))
 
 #Globalstrahlungskarte Deutschland unterteilt in Nuts einlesen  
-solar_germany_nuts <- read.delim(file ="C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-2.csv", sep = ",")
+solar_germany_nuts <- read.delim(file ="/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-2.csv", sep = ",")
 solar_germany_nuts <- solar_germany_nuts %>% 
   mutate(day = utc_timestamp %>% as.character() %>% substr(0,10)) %>% 
   mutate(time = utc_timestamp %>% as.character() %>% substr(12,19)) %>% 
@@ -95,6 +96,25 @@ sun <- sun %>%
   )
   )
 
-
+  solar_germany_nuts <- solar_germany_nuts %>% 
+  mutate(u1 = utc_timestamp %>% as.character() %>% substr(6,19))  
+  sun <- sun %>% 
+  mutate(u1 = date %>% as.character() %>% substr(6,19))
+  sun <- sun %>% 
+    select(woz, sonnenhoehe, u1)
+  solar_germany_nuts_sun <- left_join(solar_germany_nuts, sun,  by = c("u1"))
+  #left_join(solar_germany_nuts, sun, by = c("utc_timestamp" = "date"))
+  
+  #Deklination
+  #Formel: 23,45*COS(0,017453*360*(daynumber+10)/365)
+  sun <- sun %>%
+    mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365))
+    mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168)))
+    mutate(stundenwinkel = 15*(hour(date)+minute(date)/60-(15-latitude)/15-12+zeitgl/60))
+    mutate(sin_sonnenhoehe = ((sin(0.017453 * latitude) * sin(0.017453 * dec)) + (cos(0.017453 * latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel))))
+    mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453))
+    mutate(cos_azimut = -(sin(0.017453 * 52) * sin_sonnenhoehe - sin(0.017453 * dec)) / (cos(0.017453 * 52) * sin(acos(sin_sonnenhoehe))))
+    mutate(azimut = ifelse((hour(date) + (minute(date) / 60)) <= 12 + ((15 - latitude) / 15) - (zeitgl / 60) ,acos(cos_azimut) / 0.017453 , 360 - (acos(cos_azimut) / 0.017453))) 
+  
 
 

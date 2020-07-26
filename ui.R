@@ -14,6 +14,8 @@ sidebar <- dashboardSidebar(
       numericInput(inputId = "lk", label = "8. Laufende Kosten pro Jahr/kWp", value = "10"),
       numericInput(inputId = "zi", label = "9. Zinsen", value = "0.02"),
       numericInput(inputId = "ek", label = "10. Anteil Eigenkapital", value = "0"),
+      numericInput(inputId = "latitude", label = "11. Breitengrad", value = "52"),
+      numericInput(inputId = "ek", label = "12. Anteil Eigenkapital", value = "0"),
       fileInput("file","Upload the file"),
       checkboxInput(inputId = 'header', label = 'Header', value = TRUE),
       checkboxInput(inputId = "stringAsFactors", "stringAsFactors", FALSE),

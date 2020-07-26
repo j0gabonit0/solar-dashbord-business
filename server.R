@@ -25,8 +25,6 @@ function(input, output, session) {
       stringsAsFactors = input$stringAsFactors
     )
     data <- read.csv(input$file$datapath)
-    #sedn_slpc <- sedn_slpc %>%
-     # mutate(day = utc_timestamp %>% as.character() %>% substr(5, 19))
     data %>%
       mutate(date_full = seq(
         ymd_hm('2019-01-01 00:00'),
