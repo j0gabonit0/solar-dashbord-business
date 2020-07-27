@@ -16,7 +16,7 @@ reflective_radiation_pv = direct_radiation + diffuse_radiation * 0.5 * (1 - cos(
 perform_modul = global_radiation * (0.68 * ((-0.583 * temperature + 115)/100))
   
 #Sonnentabelle einlesen
-sun_raw <- read.delim(file = "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/sun.csv", sep = ";")
+sun_raw <- read.delim(file = "C:/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/sun.csv", sep = ";")
 
 # Sonnentabelle Datum formatieren  
 sun <- sun_raw %>% 
@@ -24,7 +24,7 @@ sun <- sun_raw %>%
     mutate(woz = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S"))
 
 #Globalstrahlungskarte Deutschland unterteilt in Nuts einlesen  
-solar_germany_nuts <- read.delim(file ="/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-2.csv", sep = ",")
+solar_germany_nuts <- read.delim(file ="C:/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-2.csv", sep = ",")
 solar_germany_nuts <- solar_germany_nuts %>% 
   mutate(day = utc_timestamp %>% as.character() %>% substr(0,10)) %>% 
   mutate(time = utc_timestamp %>% as.character() %>% substr(12,19)) %>% 
@@ -117,4 +117,4 @@ sun <- sun %>%
     mutate(azimut = ifelse((hour(date) + (minute(date) / 60)) <= 12 + ((15 - latitude) / 15) - (zeitgl / 60) ,acos(cos_azimut) / 0.017453 , 360 - (acos(cos_azimut) / 0.017453))) 
   
 
-
+    write_csv(solar_germany_nuts_sun,"C:/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/sedn_slpc_bu_short.csv")

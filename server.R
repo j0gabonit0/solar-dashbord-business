@@ -41,6 +41,16 @@ function(input, output, session) {
       rename(consumw1 = kwh)
   })
   
+  sun_height <- reactive({
+    sun %>%
+    mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365)) %>% 
+    mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
+    mutate(stundenwinkel = 15 * (hour(date) + minute(date)/60-(15-latitude)/15-12+zeitgl/60)) %>% 
+    mutate(sin_sonnenhoehe = ((sin(0.017453 * latitude) * sin(0.017453 * dec)) + (cos(0.017453 * latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
+    mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453)) %>% 
+    mutate(u1 = woz %>% as.character() %>% substr(6,19)) %>% 
+    select(wox, sonnenhoehe, u1)
+  })
   
   # Die Daten werden nach einer Stadt und dem Zeitraum gefiltert.  
   
@@ -52,8 +62,14 @@ function(input, output, session) {
       filter(Stadt == input$selected_country) %>%
       filter(
         utc_timestamp >= paste0(startyear, "-01-01 00:00:00"),
-        utc_timestamp <= paste0(endyear, "-12-31 24:00:00")
-      )
+        utc_timestamp <= paste0(endyear, "-12-31 24:00:00")) %>% 
+      mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365)) %>% 
+      mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
+      mutate(stundenwinkel = 15 * (hour(date) + minute(date) / 60 - (15 - input$latitude) / 15 - 12 + zeitgl / 60)) %>% 
+      mutate(sin_sonnenhoehe = ((sin(0.017453 * input$latitude) * sin(0.017453 * dec)) + (cos(0.017453 * input$latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
+      mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453)) %>% 
+      mutate(u1 = woz %>% as.character() %>% substr(6,19)) %>% 
+      select(-dec, -zeitgl, -stundenwinkel, -sin_sonnenhoehe)
   })
   
   
