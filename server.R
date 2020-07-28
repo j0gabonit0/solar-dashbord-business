@@ -11,7 +11,7 @@
 
 function(input, output, session) {
   
-  # Entweder werden die Default Daten verwendet oder als Datengrundlage dient das Upload CSV.   
+# Entweder werden die Default Daten verwendet oder als Datengrundlage dient das Upload CSV.   
   
   newcsv <- reactive({
     file1 <- input$file
@@ -25,6 +25,8 @@ function(input, output, session) {
       stringsAsFactors = input$stringAsFactors
     )
     data <- read.csv(input$file$datapath)
+    #sedn_slpc <- sedn_slpc %>%
+     # mutate(day = utc_timestamp %>% as.character() %>% substr(5, 19))
     data %>%
       mutate(date_full = seq(
         ymd_hm('2019-01-01 00:00'),
@@ -41,16 +43,6 @@ function(input, output, session) {
       rename(consumw1 = kwh)
   })
   
-  sun_height <- reactive({
-    sun %>%
-      mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365)) %>% 
-      mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
-      mutate(stundenwinkel = 15 * (hour(date) + minute(date)/60-(15-latitude)/15-12+zeitgl/60)) %>% 
-      mutate(sin_sonnenhoehe = ((sin(0.017453 * latitude) * sin(0.017453 * dec)) + (cos(0.017453 * latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
-      mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453)) %>% 
-      mutate(u1 = woz %>% as.character() %>% substr(6,19)) %>% 
-      select(wox, sonnenhoehe, u1)
-  })
   
   # Die Daten werden nach einer Stadt und dem Zeitraum gefiltert.  
   
@@ -62,19 +54,13 @@ function(input, output, session) {
       filter(Stadt == input$selected_country) %>%
       filter(
         utc_timestamp >= paste0(startyear, "-01-01 00:00:00"),
-        utc_timestamp <= paste0(endyear, "-12-31 24:00:00")) %>% 
-      mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365)) %>% 
-      mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
-      mutate(stundenwinkel = 15 * (hour(date) + minute(date) / 60 - (15 - input$latitude) / 15 - 12 + zeitgl / 60)) %>% 
-      mutate(sin_sonnenhoehe = ((sin(0.017453 * input$latitude) * sin(0.017453 * dec)) + (cos(0.017453 * input$latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
-      mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453)) %>% 
-      mutate(u1 = woz %>% as.character() %>% substr(6,19)) %>% 
-      select(-dec, -zeitgl, -stundenwinkel, -sin_sonnenhoehe)
+        utc_timestamp <= paste0(endyear, "-12-31 24:00:00")
+      )
   })
   
   
-  
-  kwhyield <- reactive({
+
+    kwhyield <- reactive({
     filtering() %>%
       summarise(
         ms = sum(solar_watt) / years * input$efficency * input$m2 * sf * module_reduce,
@@ -90,10 +76,10 @@ function(input, output, session) {
   # 2 Netzeinspeisung kWh
   # 3 Eigenverbrauch * Strompreis - EEG-Umlage
   # 4 Netzeinspeisung * EEG-Umlage
-  
+    
   #Grundlegende Berechnungen zu den Einnahmen und Ausgaben der Solaranlage
   
-  erlös <- reactive({
+  erlÃ¶s <- reactive({
     filtering() %>%
       mutate(swm2 = solar_watt * input$m2 * input$efficency * sf * module_reduce) %>%
       mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
@@ -119,7 +105,7 @@ function(input, output, session) {
   })
   
   #Investfunktion berechnet folgende Ergebnisse
-  # 1 Annuität
+  # 1 AnnuitÃ¤t
   # 2 Laufende Kosten
   
   invest <- reactive({
@@ -133,7 +119,7 @@ function(input, output, session) {
       )
     
   })
-  
+
   output$files <- renderTable(input$file)
   
   
@@ -160,43 +146,43 @@ function(input, output, session) {
   })
   
   output$ev <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Einsparung ??? p.a.", prettyNum(erlös$ev), color = "green")
+    erlÃ¶s <- erlÃ¶s()
+    valueBox("Einsparung â‚¬ p.a.", prettyNum(erlÃ¶s$ev), color = "green")
   })
   
   output$es <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Vergütung EEG ??? p.a.", prettyNum(erlös$es), color = "green")
+    erlÃ¶s <- erlÃ¶s()
+    valueBox("VergÃ¼tung EEG â‚¬ p.a.", prettyNum(erlÃ¶s$es), color = "green")
   })
   
   output$ekwh_percent <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Anteil Eigenverbrauch", prettyNum(erlös$ekwh_percent), color = "olive")
+    erlÃ¶s <- erlÃ¶s()
+    valueBox("Anteil Eigenverbrauch", prettyNum(erlÃ¶s$ekwh_percent), color = "olive")
   })
   
   output$vkwh_percent <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Anteil Netzeinspeisung", prettyNum(erlös$vkwh_percent), color = "olive")
+    erlÃ¶s <- erlÃ¶s()
+    valueBox("Anteil Netzeinspeisung", prettyNum(erlÃ¶s$vkwh_percent), color = "olive")
   })
   
   output$ge <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Erlös ??? p.a.", prettyNum(erlös$ge),color = "green")
+    erlÃ¶s <- erlÃ¶s()
+    valueBox("ErlÃ¶s â‚¬ p.a.", prettyNum(erlÃ¶s$ge),color = "green")
   })
   
   output[["ekwh"]] <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Eigenverbrauch kWh", prettyNum(erlös[["ekwh"]]))
+    erlÃ¶s <- erlÃ¶s()
+    valueBox("Eigenverbrauch kWh", prettyNum(erlÃ¶s[["ekwh"]]))
   })
   
   output[["vkwh"]] <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Netzeinspeisung kWh", prettyNum(erlös[["vkwh"]]))
+    erlÃ¶s <- erlÃ¶s()
+    valueBox("Netzeinspeisung kWh", prettyNum(erlÃ¶s[["vkwh"]]))
   })
   
   output[["cy"]] <- renderInfoBox({
     invest <- invest()
-    valueBox("Laufende Kosten ??? p.a.", prettyNum(invest[["cy"]]), color = "red")
+    valueBox("Laufende Kosten â‚¬ p.a.", prettyNum(invest[["cy"]]), color = "red")
   })
   
   output[["result"]] <- renderInfoBox({
@@ -206,7 +192,7 @@ function(input, output, session) {
   
   output[["gk"]] <- renderInfoBox({
     invest <- invest()
-    valueBox("Gesamtkosten ??? p.a.", prettyNum(invest[["gk"]]), color = "red")
+    valueBox("Gesamtkosten â‚¬ p.a.", prettyNum(invest[["gk"]]), color = "red")
     
   })
   
@@ -316,7 +302,7 @@ function(input, output, session) {
         sum(sale_month, na.rm = TRUE) + sum(consum_month, na.rm = TRUE)
       )))
     
-    #Plot der Daten aus der CSV Tabelle. Nur zur Kontrolle
+ #Plot der Daten aus der CSV Tabelle. Nur zur Kontrolle
     
   })
   

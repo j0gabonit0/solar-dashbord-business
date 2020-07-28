@@ -11,9 +11,13 @@ library(reshape2)
 library(ggpubr)
 
 
-path <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 
-sedn_slpc <- read_delim(path, delim = ",")
+path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/new.csv"
+#path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/old/sedn_slpc_bu.csv"
+
+# sedn_slpc = SolarEuropeDeutschlandNuts_StandarLastProfilConsumer
+
+sedn_slpc <- read_delim(path_sedn_slpc, delim = ",")
 sedn_slpc <- sedn_slpc %>%
   mutate(day = utc_timestamp %>% as.character() %>% substr(5, 19))
 
