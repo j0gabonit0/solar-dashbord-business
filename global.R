@@ -12,7 +12,7 @@ library(ggpubr)
 
 
 
-path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/new.csv"
+path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 #path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/old/sedn_slpc_bu.csv"
 
 # sedn_slpc = SolarEuropeDeutschlandNuts_StandarLastProfilConsumer

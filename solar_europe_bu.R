@@ -184,19 +184,57 @@ solar_europe_de_nuts %>%
     select(-z) %>% 
     mutate(day = date %>% as.character() %>% substr(5,19))
     
+###############################
+  #  KleineDatei erstellen
     
+    
+    jop <- read_delim("solar-germany-nuts.csv",delim = ",")
+    
+    jop <- jop %>% 
+      mutate(day1 = utc_timestamp %>% as.character() %>% substr(0,4)) %>% 
+      mutate(day2 = utc_timestamp %>% as.character() %>% substr(6,7)) %>% 
+      mutate(day3 = utc_timestamp %>% as.character() %>% substr(9,10)) %>% 
+      mutate(day4 = utc_timestamp %>% as.character() %>% substr(12,20)) 
+    
+    jop <- jop %>% 
+      unite(xday1,day1,day2,day3, sep = "-") %>% 
+      unite(yday1,xday1,day4, sep = " ") %>% 
+      select(-utc_timestamp) %>% 
+      rename(utc_timestamp = yday1) %>% 
+      mutate(utc_timestamp = as.POSIXct(utc_timestamp, format="%Y-%m-%d %H:%M:%S"))
+    write_csv(jop,"solar-germany-nuts.csv")
+    
+    s <- jop %>% 
+      filter(utc_timestamp >= "2010-01-01 00:00:00", utc_timestamp <="2015-12-31 24:00:00")
+      
+    write.csv(s, "solar-germany-nuts-short.csv", fileEncoding = 'UTF-8')
+    
+
     
 ######################### Bearbeiten
     
-    sedn_slpc <- read.delim("solar-germany-nuts.csv",sep = ",")
-    write.csv(sedn_slpc, "new.csv", fileEncoding = 'UTF-8')
+    sedn_slpc <- read.delim("solar-germany-nuts.csv", sep = ",")
+    write.csv(sedn_slpc1, "solar-germany-nuts.csv", fileEncoding = 'UTF-8')
+
     
-    old <- read_delim("C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/old/sedn_slpc_bu.csv", delim = ",")
+    un <- read.delim("sun.csv", sep= ";")
+    sedn_slpc <- sedn_slpc %>% 
+    mutate(u1 = utc_timestamp %>% as.character() %>% substr(6,19))
+    sun <- sun %>% 
+      mutate(u1 = woz %>% as.character() %>% substr(6,19))
     
-    sedn_slpc1 <- left_join(old, solar_europe_de_nuts,by = c("Stadt", "utc_timestamp"))
-    write.csv(sedn_slpc1,"solar-germany-nuts.csv")
     
-    x <- read.csv(file("solar-germany-nuts.csv"", encoding="UTF-8"))
+    
+    sedn_slpc1 <- sedn_slpc %>% 
+      left_join(sun, by = "u1")
+      write.csv(sedn_slpc1, "solar-germany-nuts.csv",  fileEncoding = 'UTF-8'))
+    
+    
+    x <- read.delim("new.csv", sep = ",")
+    x <- x %>%
+      select(-X.1, -X, -Bundesland.y)
+    
+    write.csv(x, "solar-germany-nuts.csv", fileEncoding = 'UTF-8')
   
 
   

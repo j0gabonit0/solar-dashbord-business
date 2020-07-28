@@ -96,5 +96,18 @@ sun <- sun %>%
   )
 
 
+#############
+x <- sedn_slpc %>% 
+  filter(Stadt == "Berlin") %>%
+  filter(
+    utc_timestamp >= "2000-01-01 00:00:00",
+    utc_timestamp <= "2010-12-31 24:00:00"
+  )
+  mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365)) %>% 
+  mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
+  mutate(stundenwinkel = 15 * (hour(date) + minute(date) / 60 - (15 - 52) / 15 - 12 + zeitgl / 60)) %>% 
+  mutate(sin_sonnenhoehe = (( sin(0.017453 * 52) * sin(0.017453 * dec)  ) + (  cos(0.017453 * 52) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
+  mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453))
+
 
 
