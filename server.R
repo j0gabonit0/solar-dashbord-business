@@ -11,7 +11,7 @@
 
 function(input, output, session) {
   
-# Entweder werden die Default Daten verwendet oder als Datengrundlage dient das Upload CSV.   
+  # Entweder werden die Default Daten verwendet oder als Datengrundlage dient das Upload CSV.   
   
   newcsv <- reactive({
     file1 <- input$file
@@ -43,13 +43,13 @@ function(input, output, session) {
   
   sun_height <- reactive({
     sun %>%
-    mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365)) %>% 
-    mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
-    mutate(stundenwinkel = 15 * (hour(date) + minute(date)/60-(15-latitude)/15-12+zeitgl/60)) %>% 
-    mutate(sin_sonnenhoehe = ((sin(0.017453 * latitude) * sin(0.017453 * dec)) + (cos(0.017453 * latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
-    mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453)) %>% 
-    mutate(u1 = woz %>% as.character() %>% substr(6,19)) %>% 
-    select(wox, sonnenhoehe, u1)
+      mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365)) %>% 
+      mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
+      mutate(stundenwinkel = 15 * (hour(date) + minute(date)/60-(15-latitude)/15-12+zeitgl/60)) %>% 
+      mutate(sin_sonnenhoehe = ((sin(0.017453 * latitude) * sin(0.017453 * dec)) + (cos(0.017453 * latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
+      mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453)) %>% 
+      mutate(u1 = woz %>% as.character() %>% substr(6,19)) %>% 
+      select(wox, sonnenhoehe, u1)
   })
   
   # Die Daten werden nach einer Stadt und dem Zeitraum gefiltert.  
@@ -73,8 +73,8 @@ function(input, output, session) {
   })
   
   
-
-    kwhyield <- reactive({
+  
+  kwhyield <- reactive({
     filtering() %>%
       summarise(
         ms = sum(solar_watt) / years * input$efficency * input$m2 * sf * module_reduce,
@@ -90,10 +90,10 @@ function(input, output, session) {
   # 2 Netzeinspeisung kWh
   # 3 Eigenverbrauch * Strompreis - EEG-Umlage
   # 4 Netzeinspeisung * EEG-Umlage
-    
+  
   #Grundlegende Berechnungen zu den Einnahmen und Ausgaben der Solaranlage
   
-  erl√∂s <- reactive({
+  erlˆs <- reactive({
     filtering() %>%
       mutate(swm2 = solar_watt * input$m2 * input$efficency * sf * module_reduce) %>%
       mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
@@ -119,7 +119,7 @@ function(input, output, session) {
   })
   
   #Investfunktion berechnet folgende Ergebnisse
-  # 1 Annuit√§t
+  # 1 Annuit‰t
   # 2 Laufende Kosten
   
   invest <- reactive({
@@ -133,7 +133,7 @@ function(input, output, session) {
       )
     
   })
-
+  
   output$files <- renderTable(input$file)
   
   
@@ -160,43 +160,43 @@ function(input, output, session) {
   })
   
   output$ev <- renderInfoBox({
-    erl√∂s <- erl√∂s()
-    valueBox("Einsparung ‚Ç¨ p.a.", prettyNum(erl√∂s$ev), color = "green")
+    erlˆs <- erlˆs()
+    valueBox("Einsparung ??? p.a.", prettyNum(erlˆs$ev), color = "green")
   })
   
   output$es <- renderInfoBox({
-    erl√∂s <- erl√∂s()
-    valueBox("Verg√ºtung EEG ‚Ç¨ p.a.", prettyNum(erl√∂s$es), color = "green")
+    erlˆs <- erlˆs()
+    valueBox("Verg¸tung EEG ??? p.a.", prettyNum(erlˆs$es), color = "green")
   })
   
   output$ekwh_percent <- renderInfoBox({
-    erl√∂s <- erl√∂s()
-    valueBox("Anteil Eigenverbrauch", prettyNum(erl√∂s$ekwh_percent), color = "olive")
+    erlˆs <- erlˆs()
+    valueBox("Anteil Eigenverbrauch", prettyNum(erlˆs$ekwh_percent), color = "olive")
   })
   
   output$vkwh_percent <- renderInfoBox({
-    erl√∂s <- erl√∂s()
-    valueBox("Anteil Netzeinspeisung", prettyNum(erl√∂s$vkwh_percent), color = "olive")
+    erlˆs <- erlˆs()
+    valueBox("Anteil Netzeinspeisung", prettyNum(erlˆs$vkwh_percent), color = "olive")
   })
   
   output$ge <- renderInfoBox({
-    erl√∂s <- erl√∂s()
-    valueBox("Erl√∂s ‚Ç¨ p.a.", prettyNum(erl√∂s$ge),color = "green")
+    erlˆs <- erlˆs()
+    valueBox("Erlˆs ??? p.a.", prettyNum(erlˆs$ge),color = "green")
   })
   
   output[["ekwh"]] <- renderInfoBox({
-    erl√∂s <- erl√∂s()
-    valueBox("Eigenverbrauch kWh", prettyNum(erl√∂s[["ekwh"]]))
+    erlˆs <- erlˆs()
+    valueBox("Eigenverbrauch kWh", prettyNum(erlˆs[["ekwh"]]))
   })
   
   output[["vkwh"]] <- renderInfoBox({
-    erl√∂s <- erl√∂s()
-    valueBox("Netzeinspeisung kWh", prettyNum(erl√∂s[["vkwh"]]))
+    erlˆs <- erlˆs()
+    valueBox("Netzeinspeisung kWh", prettyNum(erlˆs[["vkwh"]]))
   })
   
   output[["cy"]] <- renderInfoBox({
     invest <- invest()
-    valueBox("Laufende Kosten ‚Ç¨ p.a.", prettyNum(invest[["cy"]]), color = "red")
+    valueBox("Laufende Kosten ??? p.a.", prettyNum(invest[["cy"]]), color = "red")
   })
   
   output[["result"]] <- renderInfoBox({
@@ -206,7 +206,7 @@ function(input, output, session) {
   
   output[["gk"]] <- renderInfoBox({
     invest <- invest()
-    valueBox("Gesamtkosten ‚Ç¨ p.a.", prettyNum(invest[["gk"]]), color = "red")
+    valueBox("Gesamtkosten ??? p.a.", prettyNum(invest[["gk"]]), color = "red")
     
   })
   
@@ -316,7 +316,7 @@ function(input, output, session) {
         sum(sale_month, na.rm = TRUE) + sum(consum_month, na.rm = TRUE)
       )))
     
- #Plot der Daten aus der CSV Tabelle. Nur zur Kontrolle
+    #Plot der Daten aus der CSV Tabelle. Nur zur Kontrolle
     
   })
   

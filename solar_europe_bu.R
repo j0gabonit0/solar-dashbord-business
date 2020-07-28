@@ -171,8 +171,8 @@ solar_europe_de_nuts %>%
   # die Datensätze müssen gejoint werden, dabei muss das datum entfernt werden und nur auf stundenbasis gejoint.
   
   
-  slpc_r_2 <- read_delim("/Users/saschaw/Nextcloud/17_solar_dashbord/solar-dashbord-business/stursula_1.csv", delim = ",")
-  solar_europe_de_nuts <- read_delim("C:/Users/saschaw/Nextcloud/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv", delim = ",")
+  slpc_r_2 <- read_delim("C:/Users/corvi/Nextcloud-Stiftung/04_PV/07_Projekte/Dorsten_STursula/Realschule/Daten/stursula_real_slp.csv", delim = ";")
+  solar_europe_de_nuts <- read_delim("C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv", delim = ",")
   
   #1 Solarstrahlungsdaten um spalte day erweitert
   sedn_t <- solar_europe_de_nuts %>%
@@ -180,20 +180,48 @@ solar_europe_de_nuts %>%
   
   #2 Standardlastprofil pro Stunde um day erweitert
    sedn_slp_werk1 <- slpc_r_2 %>%
-    mutate(date = as.POSIXct(date, format="%d-%m-%Y %H:%M:%S")) %>%
     mutate(day = date %>% as.character() %>% substr(5,19))#%>%
-    colnames(sedn_slp_werk1)[2] <- "consumw1"
-    select(-z) %>% 
-    mutate(day = date %>% as.character() %>% substr(5,19))
+    
     
     
   
   #3Standardlastprofil an Solarstrahlungsdaten gejoint
  
-  sedn_slpc <- left_join(sedn_t, sedn_slp_werk1, by = "day")
+  sedn_slpc <- left_join(sedn_t, sedn_slp_werk1, by = "day") %>% 
+    select(-date,-day)
+  sun_raw <- read.delim(file = "sun.csv", sep = ";")
+  sun_raw <- sun_raw %>% 
+    mutate(u1 = woz %>% as.character() %>% substr(5,19))
+  sedn_slpc <- sedn_slpc %>% 
+    mutate(u1 = utc_timestamp %>% as.character() %>% substr(5,19))
   
-  #4 Neue Datentabelle in csv geschrieben
-  write_csv(sedn_slpc,"C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_w3.csv")
+  sedn_slpc <- left_join(sedn_slpc, sun_raw, by = "u1")
+  
+  sedn_slpc <- sedn_slpc %>% 
+    select(-u1, -woz,-date)
+  
+
+  
+  jop <- read_delim("solar-germany-nuts.csv",delim = ",")
+ 
+  jop <- jop %>% 
+    mutate(day1 = utc_timestamp %>% as.character() %>% substr(0,4)) %>% 
+    mutate(day2 = utc_timestamp %>% as.character() %>% substr(6,7)) %>% 
+     mutate(day3 = utc_timestamp %>% as.character() %>% substr(9,10)) %>% 
+     mutate(day4 = utc_timestamp %>% as.character() %>% substr(12,20)) 
+  
+  jop <- jop %>% 
+      unite(xday1,day1,day2,day3, sep = "-") %>% 
+      unite(yday1,xday1,day4, sep = " ") %>% 
+      select(-utc_timestamp) %>% 
+      rename(utc_timestamp = yday1) %>% 
+      mutate(utc_timestamp = as.POSIXct(utc_timestamp, format="%Y-%m-%d %H:%M:%S"))
+  write_csv(jop,"solar-germany-nuts.csv")
+  
+  s <- jop %>% 
+  filter(utc_timestamp >= "2013-01-01 00:00:00", utc_timestamp <="2015-12-31 24:00:00") %>% 
+  write_csv("solar-germany-nuts-short.csv")
+  
 ##########################################################################################################
   
   sedn_slpc <- read_delim("C:/Users/saschaw/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu_w3.csv", delim = ",")

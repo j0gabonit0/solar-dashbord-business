@@ -17,6 +17,8 @@ sidebar <- dashboardSidebar(
       numericInput(inputId = "latitude", label = "11. Breitengrad", value = "52"),
       numericInput(inputId = "ek", label = "12. Anteil Eigenkapital", value = "0"),
       numericInput(inputId = "latitude", label = "13. Breitengrad", value = "52"),
+      numericInput(inputId = "albedo", label = "14. Albedo", value = "20"),
+      numericInput(inputId = "neigung", label = "15. Neigung", value = "10"),
       fileInput("file","Upload the file"),
       checkboxInput(inputId = 'header', label = 'Header', value = TRUE),
       checkboxInput(inputId = "stringAsFactors", "stringAsFactors", FALSE),
