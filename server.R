@@ -37,8 +37,8 @@ function(input, output, session) {
       group_by(date = floor_date(date_full, unit = "hour")) %>%
       summarize(kwh = sum(kwh)) %>%
       mutate(date = as.POSIXct(date, format = "%Y-%m-%d %H:%M:%S")) %>%
-      mutate(day = date %>% as.character() %>% substr(5, 19)) %>%
-      right_join(sedn_slpc, by = "day")  %>%
+      mutate(u1 = date %>% as.character() %>% substr(6, 19)) %>%
+      right_join(sedn_slpc, by = "u1")  %>%
       select(-day, -date, -consumw1) %>%
       rename(consumw1 = kwh)
   })
@@ -56,12 +56,18 @@ function(input, output, session) {
         utc_timestamp >= paste0(startyear, "-01-01 00:00:00"),
         utc_timestamp <= paste0(endyear, "-12-31 24:00:00")
         ) %>% 
-      mutate(dec = (-23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365))) %>% 
-      mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
-      mutate(stundenwinkel = (15 * (hour(date) + minute(date) / 60 - (15 - input$latitude) / 15 - 12 + zeitgl / 60))) %>% 
-      mutate(sin_sonnenhoehe = (( sin(0.017453 * input$latitude) * sin(0.017453 * dec)  ) + (  cos(0.017453 * input$latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
-      mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453))
-  })
+        mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365)) %>% 
+        mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
+        mutate(stundenwinkel = 15*(hour(utc_timestamp) + (minute(utc_timestamp)/60) - ((15 - input$longitude)/15)- 12 + (zeitgl / 60))) %>% 
+        mutate(sin_sonnenhoehe = ((sin(0.017453 * input$latitude) * sin(0.017453 * dec)) + (cos(0.017453 * input$latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
+        mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453)) %>% 
+        mutate(cos_azimut = -((sin(0.017453 * input$latitude) * sin_sonnenhoehe) - (sin(0.017453 * dec))) / (cos(0.017453 * input$latitude) * sin(acos(sin_sonnenhoehe)))) %>% 
+        mutate(azimut = ifelse((hour(utc_timestamp) + (minute(utc_timestamp) / 60)) <= 12 + ((15 - input$latitude) / 15) - (zeitgl / 60) , acos(cos_azimut) / 0.017453 , 360 - (acos(cos_azimut) / 0.017453))) %>%  
+        mutate(direct_radiation_pv = ifelse(sonnenhoehe > 0, radiation_direct_horizontal * (sin((sonnenhoehe + 10)*0.017453) / sin(sonnenhoehe * 0.017453)),0)) %>% 
+        mutate(diffuse_radiation_pv = radiation_diffuse_horizontal * 1/2 * (1 + cos(sonnenhoehe * 0.017453))) %>% 
+        mutate(reflective_radiation_pv = (direct_radiation_pv + diffuse_radiation_pv) * 0.5 * (1 - cos(sonnenhoehe * 0.017453)) * 0.2) %>% 
+        mutate(solar_watt = (direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) / 1000)
+      })
   
   
 
@@ -307,40 +313,8 @@ function(input, output, session) {
         sum(sale_month, na.rm = TRUE) + sum(consum_month, na.rm = TRUE)
       )))
     
- #Plot der Daten aus der CSV Tabelle. Nur zur Kontrolle
-    
+
   })
-  
-  output$dtcsv <- renderDT({
-    file1 <- input$file
-    if (is.null(file1)) {
-      return()
-    }
-    read.table(
-      file = file1$datapath,
-      sep = input$sep,
-      header = input$header,
-      stringsAsFactors = input$stringAsFactors
-    )
-    data <- read.csv(input$file$datapath)
-    sedn_slpc <- sedn_slpc %>%
-      mutate(day = utc_timestamp %>% as.character() %>% substr(5, 19))
-    data %>%
-      mutate(date_full = seq(
-        ymd_hm('2019-01-01 00:00'),
-        ymd_hm('2019-12-31 23:45'),
-        by = '15 mins'
-      )) %>%
-      mutate(date_full = as.POSIXct(date_full, format = "%Y-%m-%d %H:%M:%S")) %>%
-      group_by(date = floor_date(date_full, unit = "hour")) %>%
-      summarize(kwh = sum(kwh) / 4) %>%
-      mutate(date = as.POSIXct(date, format = "%Y-%m-%d %H:%M:%S")) %>%
-      mutate(day = date %>% as.character() %>% substr(5, 19)) %>%
-      right_join(sedn_slpc, by = "day")  %>%
-      select(-day, -date, -consumw1) %>%
-      rename(consumw1 = kwh)
-    
-    
-  })
+
   
 }

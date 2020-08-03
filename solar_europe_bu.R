@@ -191,10 +191,9 @@ solar_europe_de_nuts %>%
     jop <- read_delim("solar-germany-nuts.csv",delim = ",")
     
     jop <- jop %>% 
-      mutate(day1 = utc_timestamp %>% as.character() %>% substr(0,4)) %>% 
-      mutate(day2 = utc_timestamp %>% as.character() %>% substr(6,7)) %>% 
-      mutate(day3 = utc_timestamp %>% as.character() %>% substr(9,10)) %>% 
-      mutate(day4 = utc_timestamp %>% as.character() %>% substr(12,20)) 
+      select(-X1,-X.1,-X,-country,-Bundesland.x,-u1,-date)
+    write.csv(jop, "solar-germany-nuts.csv", fileEncoding = 'UTF-8')
+      
     
     jop <- jop %>% 
       unite(xday1,day1,day2,day3, sep = "-") %>% 
@@ -205,7 +204,7 @@ solar_europe_de_nuts %>%
     write_csv(jop,"solar-germany-nuts.csv")
     
     s <- jop %>% 
-      filter(utc_timestamp >= "2010-01-01 00:00:00", utc_timestamp <="2015-12-31 24:00:00")
+      filter(utc_timestamp >= "2010-01-01 00:00:00", utc_timestamp <="2015-12-31 24:00:00") 
       
     write.csv(s, "solar-germany-nuts-short.csv", fileEncoding = 'UTF-8')
     
@@ -234,7 +233,7 @@ solar_europe_de_nuts %>%
     x <- x %>%
       select(-X.1, -X, -Bundesland.y)
     
-    write.csv(x, "solar-germany-nuts.csv", fileEncoding = 'UTF-8')
+    write.csv(y, "solar-germany-nuts.csv", fileEncoding = 'UTF-8')
   
 
   
