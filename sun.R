@@ -100,8 +100,8 @@ sun <- sun %>%
 #############
 latitude = 40
 longitude = -100
-tilt_angle_modul = 10
-azimuth_angle_modul = 180
+tilt_angle_modul = 40
+azimuth_angle_modul = 90
 
 
 sedn_slpc <- read_delim(path_sedn_slpc, delim = ",")
@@ -116,21 +116,25 @@ x <- sedn_slpc %>%
   mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
   mutate(stundenwinkel = 15*(hour(utc_timestamp) + (minute(utc_timestamp)/60) - ((15 - longitude)/15)- 12 + (zeitgl / 60))) %>% 
   mutate(sin_sonnenhoehe = ((sin_d(latitude) * sin_d(dec)) + (cos_d(latitude) * cos_d(dec) * cos_d(stundenwinkel)))) %>% 
-  mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453)) %>% 
-  mutate(cos_azimut = -((sin(0.017453 * latitude) * sin_sonnenhoehe) - (sin(0.017453 * dec))) / (cos(0.017453 * latitude) * sin_d(acos_d(sin_sonnenhoehe)))) %>% 
+  mutate(sonnenhoehe = (asin_d(sin_sonnenhoehe))) %>% 
+  mutate(cos_azimut = -((sin_d(latitude) * sin_sonnenhoehe) - (sin_d(dec))) / (cos_d(latitude) * sin_d(acos_d(sin_sonnenhoehe)))) %>% 
   mutate(azimut = ifelse((hour(utc_timestamp) + (minute(utc_timestamp) / 60)) <= 12 + ((15 - longitude) / 15) - (zeitgl / 60) , acos_d(cos_azimut) , 360 - (acos_d(cos_azimut)))) %>%  
   mutate(zenith_angle = 90 - sonnenhoehe) %>% 
-  mutate(angle_of_incidance = 
-           acos_d((cos_d(zenith_angle) * cos_d(tilt_angle_modul)) + 
-                    (sin_d(zenith_angle) * sin_d(tilt_angle_modul) * 
-                       cos((azimut - azimuth_angle_modul))))) %>% 
+  mutate(angle_of_incidance = (cos_d(sonnenhoehe) * cos_d(azimuth - azimuth_angle_modul) * sin_d(tilt_angle_modul)) + (sin_d(sonnenhoehe) * cos_d(tilt_angle_modul))) %>% 
   mutate(direct_radiation_pv = ifelse(sonnenhoehe > 0, radiation_direct_horizontal * (sin((sonnenhoehe + 10)*0.017453) / sin(sonnenhoehe * 0.017453)),0)) %>% 
   mutate(diffuse_radiation_pv = radiation_diffuse_horizontal * 1/2 * (1 + cos(sonnenhoehe * 0.017453))) %>% 
   mutate(reflective_radiation_pv = (direct_radiation_pv + diffuse_radiation_pv) * 0.5 * (1 - cos(sonnenhoehe * 0.017453)) * 0.2) %>% 
-  mutate(solar_watt = (direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) / 1000) %>% 
-  select(-consumw1,-temperature,-Stadt) %>% 
-  filter(utc_timestamp == "2015-07-15 16:00:00")
+  mutate(solar_watt = ((direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) / 1000) * (-0.583 * temperature + 115)/100) %>% 
+  filter(utc_timestamp == "2015-07-15 18:00:00")
 
   
 y = 436.6431 * sin_d((41.378 + 10))/sin_d(41.378)
 y
+
+stundenwinkel = 25.89
+azimuth_angle_modul = 0
+sonnenhoehe = 61.27
+azimuth = 57.67
+
+q = (cos_d(sonnenhoehe) * cos_d(azimuth - azimuth_angle_modul) * sin_d(tilt_angle_modul)) + (sin_d(sonnenhoehe) * cos_d(tilt_angle_modul))
+q
