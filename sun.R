@@ -101,7 +101,7 @@ sun <- sun %>%
 latitude = 40
 longitude = -100
 tilt_angle_modul = 40
-azimuth_angle_modul = 90
+azimuth_angle_modul = 10
 
 
 sedn_slpc <- read_delim(path_sedn_slpc, delim = ",")
@@ -120,12 +120,17 @@ x <- sedn_slpc %>%
   mutate(cos_azimut = -((sin_d(latitude) * sin_sonnenhoehe) - (sin_d(dec))) / (cos_d(latitude) * sin_d(acos_d(sin_sonnenhoehe)))) %>% 
   mutate(azimut = ifelse((hour(utc_timestamp) + (minute(utc_timestamp) / 60)) <= 12 + ((15 - longitude) / 15) - (zeitgl / 60) , acos_d(cos_azimut) , 360 - (acos_d(cos_azimut)))) %>%  
   mutate(zenith_angle = 90 - sonnenhoehe) %>% 
-  mutate(angle_of_incidance = (cos_d(sonnenhoehe) * cos_d(azimuth - azimuth_angle_modul) * sin_d(tilt_angle_modul)) + (sin_d(sonnenhoehe) * cos_d(tilt_angle_modul))) %>% 
-  mutate(direct_radiation_pv = ifelse(sonnenhoehe > 0, radiation_direct_horizontal * (sin((sonnenhoehe + 10)*0.017453) / sin(sonnenhoehe * 0.017453)),0)) %>% 
-  mutate(diffuse_radiation_pv = radiation_diffuse_horizontal * 1/2 * (1 + cos(sonnenhoehe * 0.017453))) %>% 
-  mutate(reflective_radiation_pv = (direct_radiation_pv + diffuse_radiation_pv) * 0.5 * (1 - cos(sonnenhoehe * 0.017453)) * 0.2) %>% 
+  mutate(angle_of_incidance = (cos_d(sonnenhoehe) * cos_d(azimut - azimuth_angle_modul) * sin_d(tilt_angle_modul)) + (sin_d(sonnenhoehe) * cos_d(tilt_angle_modul))) %>% 
+  mutate(IAM = 1 + (-0.0019386 * aoi) + (0.00025854 * ((aoi)^2)) + -0.000011229 * ((aoi)^3) + 0.00000019962 * ((aoi) ^ 4) + -0.0000000012818 * ((aoi)^5)) %>% 
+  mutate(direct_radiation_pv = ifelse(sonnenhoehe > 0, (radiation_direct_horizontal * (sin_d(sonnenhoehe + 10) / sin_d(sonnenhoehe))) * IAM,0)) %>% 
+  mutate(diffuse_radiation_pv = radiation_diffuse_horizontal * 1/2 * (1 + cos_d(sonnenhoehe))) %>% 
+  mutate(reflective_radiation_pv = (direct_radiation_pv + diffuse_radiation_pv) * 0.5 * (1 - cos_d(sonnenhoehe)) * 0.2) %>% 
   mutate(solar_watt = ((direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) / 1000) * (-0.583 * temperature + 115)/100) %>% 
-  filter(utc_timestamp == "2015-07-15 18:00:00")
+  select(-zeitgl, -stundenwinkel, -sonnenhoehe,-cos_azimut,-angle_of_incidance, - direct_radiation_pv, -diffuse_radiation_pv,-reflective_radiation_pv, -dec) %>% 
+  filter(
+    utc_timestamp >= "2014-01-01 00:00:00",
+    utc_timestamp <= "2015-12-31 24:00:00"
+  )
 
   
 y = 436.6431 * sin_d((41.378 + 10))/sin_d(41.378)
@@ -138,3 +143,24 @@ azimuth = 57.67
 
 q = (cos_d(sonnenhoehe) * cos_d(azimuth - azimuth_angle_modul) * sin_d(tilt_angle_modul)) + (sin_d(sonnenhoehe) * cos_d(tilt_angle_modul))
 q
+
+
+
+IAM with ARC
+
+c0 = 1
+c1 = -1.9386 * 10 ^ -3
+c2 = 2.5854 * 10 ^ -4
+c3 = -1.1229 * 10  ^  -5
+c4 = 1.9962 * 10 ^ -7
+c5 = -1.2818 * 10 ^ -9
+aoi = 60
+
+# Incident Angle Modifier (IAM) Korrektur des Einfallswinkels auf ein PV-Modul. Je stärker der Winkel ist desto höher ist der Verlust der direkten Strahlung.
+
+IAM = c0 + (c1 * aoi) + (c2 * ((aoi)^2)) + c3 * ((aoi)^3) + c4 * ((aoi)^4) + c5 * ((aoi)^5)
+IAM = 1 + (-0.0019386 * aoi) + (0.00025854 * ((aoi)^2)) + -0.000011229 * ((aoi)^3) + 0.00000019962 * ((aoi) ^ 4) + -0.0000000012818 * ((aoi)^5)
+IAM
+
+
+

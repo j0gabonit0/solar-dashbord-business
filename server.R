@@ -56,17 +56,21 @@ function(input, output, session) {
         utc_timestamp >= paste0(startyear, "-01-01 00:00:00"),
         utc_timestamp <= paste0(endyear, "-12-31 24:00:00")
         ) %>% 
-        mutate(dec = -23.45 * cos(0.017453 * 360 * (daynumber + 10) / 365)) %>% 
-        mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin(0.01787 * daynumber  - 0.168))) %>% 
+        mutate(dec = -23.45 * cos_d(360 * (daynumber + 10) / 365)) %>% 
+        mutate(zeitgl = 60 * (-0.171 * sin(0.0337 * daynumber + 0.465) - 0.1299 * sin_d(daynumber  - 0.168))) %>% 
         mutate(stundenwinkel = 15*(hour(utc_timestamp) + (minute(utc_timestamp)/60) - ((15 - input$longitude)/15)- 12 + (zeitgl / 60))) %>% 
-        mutate(sin_sonnenhoehe = ((sin(0.017453 * input$latitude) * sin(0.017453 * dec)) + (cos(0.017453 * input$latitude) * cos(0.017453 * dec) * cos(0.017453 * stundenwinkel)))) %>% 
+        mutate(sin_sonnenhoehe = ((sin_d(input$latitude) * sin_d(dec)) + (cos_d(input$latitude) * cos_d(dec) * cos_d(stundenwinkel)))) %>% 
         mutate(sonnenhoehe = (asin(sin_sonnenhoehe) / 0.017453)) %>% 
         mutate(cos_azimut = -((sin(0.017453 * input$latitude) * sin_sonnenhoehe) - (sin(0.017453 * dec))) / (cos(0.017453 * input$latitude) * sin(acos(sin_sonnenhoehe)))) %>% 
         mutate(azimut = ifelse((hour(utc_timestamp) + (minute(utc_timestamp) / 60)) <= 12 + ((15 - input$latitude) / 15) - (zeitgl / 60) , acos(cos_azimut) / 0.017453 , 360 - (acos(cos_azimut) / 0.017453))) %>%  
-        mutate(direct_radiation_pv = ifelse(sonnenhoehe > 0, radiation_direct_horizontal * (sin((sonnenhoehe + 10)*0.017453) / sin(sonnenhoehe * 0.017453)),0)) %>% 
+        mutate(angle_of_incidance = (cos_d(sonnenhoehe) * cos_d(azimut - input$azimuth_angle_modul) * sin_d(input$tilt_angle_modul)) + (sin_d(sonnenhoehe) * cos_d(input$tilt_angle_modul))) %>% 
+        mutate(IAM = 1 + (-0.0019386 * angle_of_incidance) + (0.00025854 * ((angle_of_incidance)^2)) + -0.000011229 * ((angle_of_incidance)^3) + 0.00000019962 * ((angle_of_incidance) ^ 4) + -0.0000000012818 * ((angle_of_incidance)^5)) %>% 
+        mutate(direct_radiation_pv = ifelse(sonnenhoehe > 0, (radiation_direct_horizontal * (sin((sonnenhoehe + 10)*0.017453) / sin(sonnenhoehe * 0.017453))) * IAM,0)) %>% 
         mutate(diffuse_radiation_pv = radiation_diffuse_horizontal * 1/2 * (1 + cos(sonnenhoehe * 0.017453))) %>% 
         mutate(reflective_radiation_pv = (direct_radiation_pv + diffuse_radiation_pv) * 0.5 * (1 - cos(sonnenhoehe * 0.017453)) * 0.2) %>% 
-        mutate(solar_watt = (direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) / 1000)
+        mutate(solar_watt = (direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) / 1000) %>% 
+        select(-zeitgl, -stundenwinkel, -sonnenhoehe,-cos_azimut,- direct_radiation_pv, -diffuse_radiation_pv,-reflective_radiation_pv, -dec)
+      
       })
   
   
@@ -90,7 +94,7 @@ function(input, output, session) {
     
   #Grundlegende Berechnungen zu den Einnahmen und Ausgaben der Solaranlage
   
-  erlös <- reactive({
+  erloes <- reactive({
     filtering() %>%
       mutate(swm2 = solar_watt * input$m2 * input$efficency * sf * module_reduce) %>%
       mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
@@ -157,38 +161,38 @@ function(input, output, session) {
   })
   
   output$ev <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Einsparung € p.a.", prettyNum(erlös$ev), color = "green")
+    erloes <- erloes()
+    valueBox("Einsparung € p.a.", prettyNum(erloes$ev), color = "green")
   })
   
   output$es <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Vergütung EEG € p.a.", prettyNum(erlös$es), color = "green")
+    erloes <- erloes()
+    valueBox("Vergütung EEG € p.a.", prettyNum(erloes$es), color = "green")
   })
   
   output$ekwh_percent <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Anteil Eigenverbrauch", prettyNum(erlös$ekwh_percent), color = "olive")
+    erloes <- erloes()
+    valueBox("Anteil Eigenverbrauch", prettyNum(erloes$ekwh_percent), color = "olive")
   })
   
   output$vkwh_percent <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Anteil Netzeinspeisung", prettyNum(erlös$vkwh_percent), color = "olive")
+    erloes <- erloes()
+    valueBox("Anteil Netzeinspeisung", prettyNum(erloes$vkwh_percent), color = "olive")
   })
   
   output$ge <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Erlös € p.a.", prettyNum(erlös$ge),color = "green")
+    erloes <- erloes()
+    valueBox("erloes € p.a.", prettyNum(erloes$ge),color = "green")
   })
   
   output[["ekwh"]] <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Eigenverbrauch kWh", prettyNum(erlös[["ekwh"]]))
+    erloes <- erloes()
+    valueBox("Eigenverbrauch kWh", prettyNum(erloes[["ekwh"]]))
   })
   
   output[["vkwh"]] <- renderInfoBox({
-    erlös <- erlös()
-    valueBox("Netzeinspeisung kWh", prettyNum(erlös[["vkwh"]]))
+    erloes <- erloes()
+    valueBox("Netzeinspeisung kWh", prettyNum(erloes[["vkwh"]]))
   })
   
   output[["cy"]] <- renderInfoBox({
@@ -223,7 +227,7 @@ function(input, output, session) {
       mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       mutate(month = month(date)) %>%
       group_by(month) %>%
-      summarize(em = floor(sum(e, na.rm = TRUE)), vm = floor((sum(v, na.rm = TRUE)))) %>%
+      summarise(em = floor(sum(e, na.rm = TRUE)), vm = floor((sum(v, na.rm = TRUE)))) %>%
       ggplot(aes(x = month)) +
       geom_line(aes(y = em, colour = "Eigenverbrauch in kWh"), stat = "identity") +
       geom_line(aes(y = vm, colour = "Netzeinspeisung in kWh"), stat = "identity") +
@@ -256,7 +260,7 @@ function(input, output, session) {
       mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
       mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>%
-      summarize(
+      summarise(
         avg = mean(solar_watt, na.rm = TRUE) * input$m2,
         e = mean(e1),
         v = mean(v1),
@@ -300,7 +304,7 @@ function(input, output, session) {
       mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       mutate(month = month(date)) %>%
       group_by(month) %>%
-      summarize(
+      summarise(
         consum_month = floor(sum(consum_mean, na.rm = TRUE)),
         sale_month = floor(sum(sale_mean, na.rm = TRUE)),
         Erzeugung_Anlage_kwh = floor(sum(swm2, na.rm = TRUE)),
