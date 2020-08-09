@@ -5,6 +5,9 @@
 #C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage
 
 
+#Direct radiation is defined as radiation that has not experienced scattering in the atmosphere, so that it is directionally fixed, coming from the disc of the Sun.
+
+
 # Strahlung der Sonne auf einem PV-Modul = Direktstrahlung + diffuse Strahlung + reflektierende Strahlung
 
 direct_radiation_pv = direct_radiation * (sin(sonnenhoehe + neigung) / sin(sonnenhoehe))
@@ -98,10 +101,10 @@ sun <- sun %>%
 
 
 #############
-latitude = 40
-longitude = -100
+latitude = 52.51
+longitude = 13.41
 tilt_angle_modul = 10
-azimuth_angle_modul = 180
+azimuth_angle_modul = 100
 m2 = 500
 
 #Apparent Extraterrestrial Solar Insolation 
@@ -145,18 +148,18 @@ x <- sedn_slpc %>%
   mutate(air_mass_ratio = abs (1 / sin(2 * pi / 360 * sonnenhoehe))) %>%
   mutate(c_beam_radiation = ifelse(sonnenhoehe > 0, aesi * exp(-optical_depth * air_mass_ratio), 0 )) %>% 
   mutate(ratio_c_beam_solar_watt = c_beam_radiation / aesi) %>% 
-  mutate(angle_of_incidance = (cos_d(sonnenhoehe) * cos_d(azimut - azimuth_angle_modul) * sin_d(tilt_angle_modul)) + (sin_d(sonnenhoehe) * cos_d(tilt_angle_modul))) %>% 
+  mutate(angle_of_incidance = acos_d(cos_d(sonnenhoehe) * cos_d(azimut - azimuth_angle_modul) * sin_d(tilt_angle_modul)) + (sin_d(sonnenhoehe) * cos_d(tilt_angle_modul))) %>% 
   mutate(IAM = 1 + (-0.0019386 * angle_of_incidance) + (0.00025854 * ((angle_of_incidance)^2)) + -0.000011229 * ((angle_of_incidance)^3) + 0.00000019962 * ((angle_of_incidance) ^ 4) + -0.0000000012818 * ((angle_of_incidance)^5)) %>% 
   mutate(direct_radiation_pv = ifelse(sonnenhoehe > 0, (radiation_direct_horizontal/1000 * (sin_d(sonnenhoehe + 10) / sin_d(sonnenhoehe))) * IAM,0)) %>% 
   mutate(diffuse_radiation_pv = radiation_diffuse_horizontal/1000 * 1/2 * (1 + cos_d(sonnenhoehe))) %>% 
   mutate(reflective_radiation_pv = (direct_radiation_pv + diffuse_radiation_pv) * 0.5 * (1 - cos_d(sonnenhoehe)) * 0.2) %>% 
-  mutate(solar_watt = ((direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) * (-0.583 * temperature + 115) / 100 )) %>% 
+  mutate(solar_watt = ((direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) * (-0.583 * temperature + 115) / 100 ) * 0.19 * 0.9 * 0.94) %>% 
   #select(-zeitgl, -stundenwinkel, -sonnenhoehe,-cos_azimut,-angle_of_incidance, - direct_radiation_pv, -diffuse_radiation_pv,-reflective_radiation_pv, -dec) %>% 
   filter(
-    utc_timestamp >= "2014-01-01 16:00:00",
-    utc_timestamp <= "2014-12-31 24:00:00"
+    utc_timestamp >="2014-07-15 02:00:00",
+    utc_timestamp <= "2015-07-16 01:00:00"
     
-  ) %>% 
+  ) #%>% 
   summarise(kwh = sum(solar_watt), kwh_old = sum((radiation_direct_horizontal + radiation_diffuse_horizontal) / 1000))
   
   
@@ -173,6 +176,7 @@ q
 
 
 
+
 IAM with ARC
 
 c0 = 1
@@ -181,13 +185,12 @@ c2 = 2.5854 * 10 ^ -4
 c3 = -1.1229 * 10  ^  -5
 c4 = 1.9962 * 10 ^ -7
 c5 = -1.2818 * 10 ^ -9
-aoi = 60
+aoi = 90
 
 # Incident Angle Modifier (IAM) Korrektur des Einfallswinkels auf ein PV-Modul. Je st?rker der Winkel ist desto h?her ist der Verlust der direkten Strahlung.
 
 IAM = c0 + (c1 * aoi) + (c2 * ((aoi)^2)) + c3 * ((aoi)^3) + c4 * ((aoi)^4) + c5 * ((aoi)^5)
 IAM = 1 + (-0.0019386 * aoi) + (0.00025854 * ((aoi)^2)) + -0.000011229 * ((aoi)^3) + 0.00000019962 * ((aoi) ^ 4) + -0.0000000012818 * ((aoi)^5)
 IAM
-
 
 
