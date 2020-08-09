@@ -14,8 +14,9 @@ library(aspace)
 #b 
 #x <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
 #iw 
-x <- "C:/Users/saschaw/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
-
+#x <- "C:/Users/saschaw/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
+#m
+x <- "/Volumes/BOOTCAMP/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 path_sedn_slpc <- x
 #path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/old/sedn_slpc_bu.csv"
 
@@ -37,7 +38,7 @@ module_reduce = 1
 # Quadratmeter für 1 kWp
 m2kwp = 6
 
-years = 21
+years = 4
 
 #Eigenverbrauch  = consum
 #Netzeinspeisung = sale
