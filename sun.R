@@ -125,7 +125,7 @@ h = abs(1/sin(2 * pi/360 * 71.19))
 Clear Sky Beam Radiation
 # c_beam_radiation
 =WENN(sonnenhoehe>0;aesi*EXP(-Optical Depth * AirMassRatio);0)
-k = 1086.66 * exp(-0.209 * 1.056)
+k = 1086.66 * exp(-0.208 * 1.056)
 k
 sedn_slpc <- read_delim(path_sedn_slpc, delim = ",")
 
@@ -146,24 +146,24 @@ x <- sedn_slpc %>%
   mutate(azimut = ifelse((hour(utc_timestamp) + (minute(utc_timestamp) / 60)) <= 12 + ((15 - longitude) / 15) - (zeitgl / 60) , acos_d(cos_azimut) , 360 - (acos_d(cos_azimut)))) %>%  
   mutate(zenith_angle = 90 - sonnenhoehe) %>% 
   mutate(air_mass_ratio = abs (1 / sin(2 * pi / 360 * sonnenhoehe))) %>%
-  mutate(c_beam_radiation = ifelse(sonnenhoehe > 0, aesi * exp(-optical_depth * air_mass_ratio), 0 )) %>% 
+  mutate(c_beam_radiation = ifelse(sonnenhoehe > 0, aesi * exp(-1 *optical_depth * air_mass_ratio), 0 )) %>% 
   mutate(ratio_c_beam_solar_watt = c_beam_radiation / aesi) %>% 
   mutate(angle_of_incidance = acos_d(cos_d(sonnenhoehe) * cos_d(azimut - azimuth_angle_modul) * sin_d(tilt_angle_modul)) + (sin_d(sonnenhoehe) * cos_d(tilt_angle_modul))) %>% 
   mutate(IAM = 1 + (-0.0019386 * angle_of_incidance) + (0.00025854 * ((angle_of_incidance)^2)) + -0.000011229 * ((angle_of_incidance)^3) + 0.00000019962 * ((angle_of_incidance) ^ 4) + -0.0000000012818 * ((angle_of_incidance)^5)) %>% 
   mutate(direct_radiation_pv = ifelse(sonnenhoehe > 0, (radiation_direct_horizontal/1000 * (sin_d(sonnenhoehe + 10) / sin_d(sonnenhoehe))) * IAM,0)) %>% 
   mutate(diffuse_radiation_pv = radiation_diffuse_horizontal/1000 * 1/2 * (1 + cos_d(sonnenhoehe))) %>% 
   mutate(reflective_radiation_pv = (direct_radiation_pv + diffuse_radiation_pv) * 0.5 * (1 - cos_d(sonnenhoehe)) * 0.2) %>% 
-  mutate(solar_watt = ((direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) * (-0.583 * temperature + 115) / 100 ) * 0.19 * 0.9 * 0.94) %>% 
+  mutate(solar_watt = ((direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) * ((-0.5 * temperature + 12.5) / 100 )) * 0.2 * 0.9 * 0.94) %>% 
   #select(-zeitgl, -stundenwinkel, -sonnenhoehe,-cos_azimut,-angle_of_incidance, - direct_radiation_pv, -diffuse_radiation_pv,-reflective_radiation_pv, -dec) %>% 
   filter(
     utc_timestamp >="2014-07-15 02:00:00",
     utc_timestamp <= "2015-07-16 01:00:00"
     
-  ) #%>% 
+  ) %>% 
   summarise(kwh = sum(solar_watt), kwh_old = sum((radiation_direct_horizontal + radiation_diffuse_horizontal) / 1000))
   
   
-y = 436.6431 * sin_d((41.378 + 10))/sin_d(41.378)
+32y = 436.6431 * sin_d((41.378 + 10))/sin_d(41.378)
 y
 
 stundenwinkel = 25.89
