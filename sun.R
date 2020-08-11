@@ -160,12 +160,11 @@ x <- sedn_slpc %>%
   mutate(diffuse_radiation_pv = radiation_diffuse_horizontal/1000 * 1/2 * (1 + cos_d(sonnenhoehe))) %>% 
   mutate(reflective_radiation_pv = (direct_radiation_pv + diffuse_radiation_pv) * 0.5 * (1 - cos_d(sonnenhoehe)) * 0.2) %>% 
   mutate(solar_watt = ((direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) * (1+((-0.5 * temperature + 12.5) / 100 ))) * efficency * module_reduce) %>% 
-  #select(-zeitgl, -stundenwinkel, -sonnenhoehe,-cos_azimut,-angle_of_incidance, - direct_radiation_pv, -diffuse_radiation_pv,-reflective_radiation_pv, -dec) %>% 
-  filter(
+ filter(
     utc_timestamp >="2014-07-15 02:00:00",
     utc_timestamp <= "2015-07-16 01:00:00"
     
-  ) %>% 
+  )%>% 
   summarise(kwh = sum(solar_watt), kwh_old = sum((radiation_direct_horizontal + radiation_diffuse_horizontal) / 1000))
   
   

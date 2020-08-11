@@ -18,7 +18,7 @@ sidebar <- dashboardSidebar(
       numericInput(inputId = "longitude", label = "12. Längengrad", value = "13.41"),
       numericInput(inputId = "tilt_angle_modul", label = "13. Neigung des Moduls", value = "10"),
       numericInput(inputId = "azimuth_angle_modul", label = "15.Ausrichtung Modul Azimuth", value = "180"),
-      numericInput(inputId = "albedo", label = "14.Albedo", value = "20"),
+      numericInput(inputId = "albedo", label = "14.Albedo", value = "0.20"),
       fileInput("file","Upload the file"),
       checkboxInput(inputId = 'header', label = 'Header', value = TRUE),
       checkboxInput(inputId = "stringAsFactors", "stringAsFactors", FALSE),

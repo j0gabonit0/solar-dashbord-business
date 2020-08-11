@@ -95,8 +95,8 @@ function(input, output, session) {
       mutate(solar_watt = ((
         direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) *
           (1 + ((-0.5 * temperature + 12.5) / 100))) * 
-          input$efficency * module_reduce)
-      #select(-zeitgl, -stundenwinkel, -sonnenhoehe,-cos_azimut,-angle_of_incidance, - direct_radiation_pv, -diffuse_radiation_pv,-reflective_radiation_pv, -dec) %>% 
+          input$efficency * module_reduce * anti_reflection_modul * wechselrichter_wigrad * input$m2)
+      #select(-zeitgl, -stundenwinkel,0 -sonnenhoehe,-cos_azimut,-angle_of_incidance, - direct_radiation_pv, -diffuse_radiation_pv,-reflective_radiation_pv, -dec) %>% 
     
       })
   
@@ -105,9 +105,9 @@ function(input, output, session) {
     kwhyield <- reactive({
     filtering() %>%
       summarise(
-        ms = sum(solar_watt) / years * input$efficency * input$m2 * sf * module_reduce,
-        kwhm2 = sum(solar_watt) / years * input$efficency * sf * module_reduce,
-        kwhkwp = sum(solar_watt) / years * input$efficency * sf * m2kwp * module_reduce,
+        ms = sum(solar_watt) / years,
+        kwhm2 = sum(solar_watt) / input$m2 / years ,
+        kwhkwp = sum(solar_watt) / input$m2  / years,
         consum_proof = (sum(consumw1, na.rm = TRUE) / years)
       )
   })
@@ -123,7 +123,7 @@ function(input, output, session) {
   
   erloes <- reactive({
     filtering() %>%
-      mutate(swm2 = solar_watt * input$m2 * input$efficency * sf * module_reduce) %>%
+      mutate(swm2 = solar_watt) %>%
       mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
       mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
       summarise(
@@ -246,7 +246,7 @@ function(input, output, session) {
     data <- filtering()
     data %>%
       mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
-      mutate(swm2 = solar_watt * input$efficency * input$m2 * sf * module_reduce) %>%
+      mutate(swm2 = solar_watt) %>%
       mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
       mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>%
@@ -283,7 +283,7 @@ function(input, output, session) {
     data <- filtering()
     data %>%
       mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
-      mutate(swm2 = solar_watt * input$efficency * input$m2 * sf * module_reduce) %>%
+      mutate(swm2 = solar_watt) %>%
       mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
       mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>%
@@ -318,7 +318,7 @@ function(input, output, session) {
     data <- filtering()
     data %>%
       mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
-      mutate(swm2 = solar_watt * input$efficency * input$m2 * sf * module_reduce) %>%
+      mutate(swm2 = solar_watt) %>%
       mutate(consum = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
       mutate(sale = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>%

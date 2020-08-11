@@ -14,10 +14,10 @@ library(aspace)
 #b 
 #x <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
 #iw 
-#x <- "C:/Users/saschaw/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
+x <- "C:/Users/saschaw/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
 #m
 #x <- "/Volumes/BOOTCAMP/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
-x <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
+#x <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 path_sedn_slpc <- x
 #path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/old/sedn_slpc_bu.csv"
 
@@ -37,9 +37,14 @@ sf = 1
 module_reduce = 0.95
 
 # Quadratmeter fÃ¼r 1 kWp
-m2kwp = 6
+m2kwp = 5.2
 
-years = 5
+years = 21
+
+#Losses
+
+anti_reflection_modul = 0.95 # Die Reflektionsverluste entstehen durch Reflektion des Lichts durch das Modul. Diese wird durch eine spezielle Schicht im Modul auc ca.5% reduziert, sodass ein Ertrag von 95% bleibt = 0.95
+wechselrichter_wigrad = 0.98 # Der maximale Wirkungsgrad von Wechselrichtern ist 98%. Dies bedeutet, dass 98% des Stroms umgewandelt werden und 2% verloren gehen. Für die Berechnungen sind pauschal 0.95% anzusetzen. Dies kann beispielsweise durch längere Kabelwege passieren.
 
 #Eigenverbrauch  = consum
 #Netzeinspeisung = sale
