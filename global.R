@@ -14,9 +14,10 @@ library(aspace)
 #b 
 #x <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
 #iw 
-x <- "C:/Users/saschaw/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
+#x <- "C:/Users/saschaw/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 #m
 #x <- "/Volumes/BOOTCAMP/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
+x <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 path_sedn_slpc <- x
 #path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/old/sedn_slpc_bu.csv"
 
@@ -33,12 +34,12 @@ sedn_slpc <- sedn_slpc %>%
 sf = 1
 
 # Leistungsabnahme des Moduls ueber 20 Jahre durchschnittlich 0,05% = 20 * 0,005% = 10%. Wenn die Abnahme über 20 Jahre 10 % ist, dann kann man den Startwert der Module * 95% rechnen.
-module_reduce = 1
+module_reduce = 0.95
 
 # Quadratmeter für 1 kWp
 m2kwp = 6
 
-years = 4
+years = 5
 
 #Eigenverbrauch  = consum
 #Netzeinspeisung = sale
