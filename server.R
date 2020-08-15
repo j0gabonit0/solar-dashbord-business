@@ -30,16 +30,16 @@ function(input, output, session) {
     data %>%
       mutate(date_full = seq(
         ymd_hm('2019-01-01 00:00'),
-        ymd_hm('2019-12-31 23:45'),
-        by = '15 mins'
+        ymd_hm('2019-12-31 23:00'),
+        by = 'hour'
       )) %>%
       mutate(date_full = as.POSIXct(date_full, format = "%Y-%m-%d %H:%M:%S")) %>%
       group_by(date = floor_date(date_full, unit = "hour")) %>%
-      summarize(kwh = sum(kwh)) %>%
+      summarise(kwh = sum(kwh)) %>%
       mutate(date = as.POSIXct(date, format = "%Y-%m-%d %H:%M:%S")) %>%
       mutate(u1 = date %>% as.character() %>% substr(6, 19)) %>%
       right_join(sedn_slpc, by = "u1")  %>%
-      select(-day, -date, -consumw1) %>%
+      select(-date, -consumw1) %>%
       rename(consumw1 = kwh)
   })
   

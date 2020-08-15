@@ -315,4 +315,19 @@ solar_europe_de_nuts %>%
            rename(consumw1 = kwh) %>%
            summarise(jo = sum(consumw1, na.rm = TRUE))
          })
+
+
+
+###################
+
+g <- read.delim("/Users/sascha/NC/04_PV/07_Projekte/Marl_Werrastraße-2a_Kaffeeroesterei/07_Gebäude/w3.csv", sep = ",")
+
+f <- g %>% 
+mutate(date_full = seq(
+    ymd_hm('2019-01-01 00:00'),
+    ymd_hm('2019-12-31 23:00'),
+    by = 'hour'))
+
+
+
      
