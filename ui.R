@@ -1,7 +1,6 @@
 library(shinydashboard)
 titlePanel("Solar Deutschland")
-
-
+d
 sidebar <- dashboardSidebar(
  sidebarMenu(
       selectInput(inputId = "selected_country", label = "1.Select city", choices = sort(unique(sedn_slpc$Stadt))),

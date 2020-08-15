@@ -1,12 +1,4 @@
-# Solar Rendite Rechner
-# Der Rendite Rechner errechnet die voraussichtlichen Gewinne einer PV-Anlage basierend auf dem Standort, dem Lastgang und der Leistung der PV-Anlage.
-# Die Solardaten habe ich von "https://data.open-power-system-data.org/weather_data/2019-04-09" bezogen. In dem Datenset sind stuendliche Werte fuer Solareinstrahlung,Temperatur nach europaeischen Laendern. Deutschland ist zusaetzlich in NUTS Zonen unterteilt.
-# Das Dashbord berechnet bei Beginn eine Solaranlage mit 100kWp und einem Lastprofil von 140.000 kWh p.a. Dies ist fuer oeffentliche Gebaeude wie Schulen repraesentativ. Fuer Haushalte muss dies angepasst werden. Es gibt im Internet kostenlose Lastprofile fuer viele Anwendungsfaelle wie Landwirtschaft,Haushalt oder Gewerbe.
-# Wenn ein eigenes Lastprofil vorliegt (was sehr leicht beim Stromanbieter eingefordert werden kann), kann man den Upload Button verwenden. Die Kalkulationen werden dann neu durchgefuehrt.
-# In Zukunft sollen mehrere Lastprofile zur Auswahl stehen.
-# Die Lastprofile dienen dazu, eine genauere Berechnung des Eigenverbrauchs durchzufuehren. Eure stuendlichen Verbraeuche werden mit den stuendlichen Einstrahlungswerten der PV-Anlage verrechnet. Somit koennt ihr auf stuendlicher Basis vorhersagen, wie viel Strom in den letzten 20 Jahren abgenommen worden waere.
-#
-
+d
 # Funktionen
 
 function(input, output, session) {

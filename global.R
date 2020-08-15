@@ -10,7 +10,7 @@ library(lubridate)
 library(reshape2)
 library(ggpubr)
 library(aspace)
-
+d
 #b 
 #x <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
 #iw 
