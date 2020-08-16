@@ -10,18 +10,11 @@ library(lubridate)
 library(reshape2)
 library(ggpubr)
 library(aspace)
+library(rsconnect)
 
-#b 
-#x <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
-#iw 
-#x <- "C:/Users/saschaw/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
-#m
-#x <- "/Volumes/BOOTCAMP/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
-x <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
+x <- "solar-germany-nuts-short.csv"
 
 path_sedn_slpc <- x
-#path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/old/sedn_slpc_bu.csv"
-
 
 
 # sedn_slpc = SolarEuropeDeutschlandNuts_StandarLastProfilConsumer
@@ -40,7 +33,7 @@ module_reduce = 0.95
 # Quadratmeter für 1 kWp
 m2kwp = 5.2
 
-years = 21
+years = 3
 
 #Losses
 
