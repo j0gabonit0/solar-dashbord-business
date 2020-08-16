@@ -10,14 +10,14 @@ library(lubridate)
 library(reshape2)
 library(ggpubr)
 library(aspace)
-d
+
 #b 
 #x <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
 #iw 
 #x <- "C:/Users/saschaw/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
 #m
 #x <- "/Volumes/BOOTCAMP/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
-x <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts.csv"
+x <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 
 path_sedn_slpc <- x
 #path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/old/sedn_slpc_bu.csv"
@@ -31,6 +31,11 @@ sedn_slpc <- sedn_slpc %>%
   mutate(utc_timestamp = as.POSIXct(utc_timestamp), format = c("%Y-%m-%d %H:%M:%S")) %>% 
   mutate(u1 = utc_timestamp %>% as.character() %>% substr(6, 19))
 
+nuts_123_germany <- read.delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/nuts_123_germany.csv", sep = ",")
+
+nuts_123_germany <- nuts_123_germany %>% 
+  mutate(nuts2 = nuts2 %>% as.character())
+
 # Sicherheitsfaktor 95% der voraussichtlichen Leistung - Dies wird pauschal angesetzt.
 sf = 1
 
@@ -40,7 +45,9 @@ module_reduce = 0.95
 # Quadratmeter für 1 kWp
 m2kwp = 5.2
 
-years = 21
+startyear <- 2010
+endyear <- 2012
+years = 3
 
 #Losses
 

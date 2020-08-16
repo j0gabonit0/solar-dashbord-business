@@ -1,10 +1,8 @@
 library(shinydashboard)
-titlePanel("Solar Deutschland")
-d
+titlePanel("SolarCalculator Volti")
 sidebar <- dashboardSidebar(
  sidebarMenu(
-      selectInput(inputId = "selected_country", label = "1.Select city", choices = sort(unique(sedn_slpc$Stadt))),
-      dateRangeInput(inputId = "date", label = "2.Select years", format = "yyyy", startview = "decade", start = "1995-01-01", end = "2015-12-31"),
+      selectInput(inputId = "selected_country", label = "1.Select city", choices = sort(unique(nuts_123_germany$place))),
       numericInput(inputId = "m2", label = "3.Freie Dachflaeche", value = "500"),
       numericInput(inputId = "efficency", label = "4.Effizienz Module", value = "0.2", min = 0, max = 1, step = 0.05),
       numericInput(inputId = "cost", label = "5.Kosten pro kWh", value = "0.16"),
