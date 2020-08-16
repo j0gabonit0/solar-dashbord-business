@@ -1,5 +1,6 @@
-# solar-dashbord-business
+SolarCalculator Volti 
 
-Das Dashbord dient dazu, den Eigenverbrauch von Photovoltaikanlagen zu berechnen.
-Das Ziel ist es, den Eigenverbrauch eines Unternehmens mithilfe des Lastgangs zu ermitteln. Das Shiny Dasbord nimmt eine csv Datei entgegen und berechnet die Abnahmemenge - hochgerechnet auf 20 Jahre.
-So kann eine verlässliche Aussage darüber getroffen werden, wie viel Strom ein Unternehmen von der Photovoltaikanlage bezieht.
+Der SolarCalculator Volti ermöglicht eine Berechnung der potenziellen Eträge einer Solaranlage in Deutschland.
+Volti kalkuliert auf der Basis von Satellitenstrahlungsdatenbanken wie viel Energie am eingegeben Standort auf eine horizontalen Fläche von 1 m2 ankommt. Mithilfe von Modellen wird dann die Neigung der Module und die Himmelsausrichtung berücksichtigt. Davon werden verschiedenste Verluste, wie Temperaturschwankungen, Moduleffizienz, Modulwirkungsdegredation und Kabelverluste abgezogen. 
+
+Mithilfe dieses Dashbords ist es möglich, Vorhersagen für die Rentabilität einer Solaranlage zu berechnen.
