@@ -34,7 +34,8 @@ sedn_slpc <- sedn_slpc %>%
 nuts_123_germany <- read.delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/nuts_123_germany.csv", sep = ",")
 
 nuts_123_germany <- nuts_123_germany %>% 
-  mutate(nuts2 = nuts2 %>% as.character())
+  mutate(nuts2 = nuts2 %>% as.character()) %>% 
+  mutate(place = place %>% as.character())
 
 # Sicherheitsfaktor 95% der voraussichtlichen Leistung - Dies wird pauschal angesetzt.
 sf = 1

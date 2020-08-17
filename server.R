@@ -36,21 +36,20 @@ function(input, output, session) {
   })
   
   stadt <- reactive({
-    nuts_123_germany %>% 
-    filter(place == input$selected_country) %>%
-    summarise(city = first(nuts2)) %>% 
-    mutate(city = city %>% as.character())
+    nuts_123_germany <- nuts_123_germany %>% 
+      filter(place == input$selected_country) %>% 
+      summarise(city = first(nuts2)) %>% 
+      mutate(city = city %>% as.character()) %>% 
+      summarise(city = first(city))  
+      kl = nuts_123_germany[1, "city"]
       
   })
-  
-  
+
   # Die Daten werden nach einer Stadt und dem Zeitraum gefiltert.  
   
   filtering <- reactive({
-    environment(stadt) %>% 
-    st <- stadt[["city"]]
-        newcsv() %>% 
-      filter(country_nuts2 == st) %>%
+       newcsv() %>% 
+      filter(country_nuts2 == stadt$kl) %>%
       filter(
         utc_timestamp >= paste0(startyear, "-01-01 00:00:00"),
         utc_timestamp <= paste0(endyear, "-12-31 24:00:00")

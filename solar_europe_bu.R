@@ -23,7 +23,7 @@ install_github("rstudio/shinydashboard")
 ############
 #1.Schritt - Rohdaten in eine neue Tabelle schreiben
 
-path <- "weather_data.csv"
+path <- "/Users/sascha/NC/17_solar_dashbord/2019-04-09_opsd-weather_data/weather_data.csv"
 
 raw_opsd <- read_delim(file = path,delim = ",") # Rohdaten 
 solar_europe <-raw_opsd # Ursprungstabelle
@@ -44,32 +44,70 @@ rlang::last_error
 #3.Schritt - Überflüssige Daten entfernen Windspeed/
 
 solar_europe_de_w <- solar_europe_de %>%
-  select(-windspeed_10m) %>%
+  select(-windspeed_10m)
   mutate(solar_watt = (radiation_direct_horizontal + radiation_diffuse_horizontal) / 1000) #* (0.68 * ((-0.583 * temperature + 115)/100))) %>%
 ####################################
 #3.1 Wikipedia NUTS Daten hinzufügen
 
-path_wiki <- "wiki_nuts_tidy.csv"
+path_wiki <- "/Users/sascha/NC/17_solar_dashbord/solar_dashbord-uni/wiki_nuts_tidy.csv"
 wiki_nuts <- read_delim(file = path_wiki,delim = ",")
 solar_europe_de_nuts <- inner_join(solar_europe_de_w, wiki_nuts, by = c("country" = "NUTS2"))
+solar_europe_de_nuts <- solar_europe_de_nuts %>% 
+  rename(country_nuts2 = country )
 
-####################################
-#Standardlastprofil
+wn <- read.delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Nuts/nuts1-2-3_germany.csv", sep = ",")
 
-#slpc aus https://swbt-netz.de/
-# Addieren Sie die 4 Werte einer Stunde, und teilen Sie das Ergebnis durch 4. Damit erhalten Sie den Wert eines Kilowatt pro Stunde = kWh. 
+######################
 
-
-path_slpc_d <- "/Users/sascha/Nextcloud/17_solar_dashbord/slpc.csv"
-slpc_d <- read_delim(file = path_slpc_d, delim = ";") %>%
-  #mutate(date = Datum %>% as.Date("%Y.%m.%d") %>% as.character() %>% substr(6,10) %>% paste0("2019-", .) %>% as.Date()) %>%
-  mutate(date = Datum) %>%
-  group_by(date) %>%
-  mutate(watt = gsub(",", ".",kw) %>% as.numeric()) %>%
-  summarize(standardlast = sum(watt) / 4 )
+slpc_r <- read_delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Rohdaten/stursula_real_slp.csv", delim = ";")
 
 
+#######################
+#Zusammenfügen von sedn_slpc und Standardlastprofil
 
+slpc_r <- read_delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Rohdaten/stursula_real_slp.csv", delim = ";")
+
+sedn_t <- solar_europe_de_nuts %>%
+  mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
+
+sedn_slpc <- slpc_r %>% 
+  mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>%
+  group_by(date = floor_date(date, unit = "hour")) %>%
+  summarise(kwh = sum(consumw1) / 4) %>% 
+  mutate(day = date %>% as.character() %>% substr(5,19)) %>% 
+  right_join(sedn_t,by = "day") %>% 
+  select(-day,-date) %>% 
+  rename(consumw1 = kwh) 
+
+sun <- read_delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/sun.csv", delim = ";")
+sun <- sun %>% 
+  mutate(day = date %>% as.character() %>% substr(5,19))
+
+sedn_slpc <- sedn_slpc %>% 
+  mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
+
+sedn_slpc <- sedn_slpc %>% 
+  left_join(sun, by = "day")
+
+sedn_slpc <- sedn_slpc %>% 
+  mutate(particular_day = day(utc_timestamp)) %>% 
+  select(-day,-date)
+  
+s <- sedn_slpc %>% 
+    filter(utc_timestamp >= "2010-01-01 00:00:00", utc_timestamp <="2012-12-31 24:00:00") 
+  
+write.csv(s, "solar-germany-nuts-short.csv", fileEncoding = 'UTF-8')
+  
+  
+test_nuts <- read.delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/nuts_123_germany.csv", sep = ",")
+test_nuts <- test_nuts %>% 
+  filter(place == "Aachen") %>% 
+  summarise(city = first(nuts2)) %>% 
+ mutate(city = city %>% as.character()) %>% 
+summarise(city = first(city)) 
+x = test_nuts[1, "city"]
+filter(nuts_123_germany, nuts2 == x )
+l = summarise(test_nuts)
 #####################################
 #3.3 Datei abspeichern für Shiny
 write_csv(slpc_d,"/Users/sascha/Nextcloud/17_solar_dashbord/slpc_d.csv")
@@ -183,6 +221,9 @@ solar_europe_de_nuts %>%
     colnames(sedn_slp_werk1)[2] <- "consumw1"
     select(-z) %>% 
     mutate(day = date %>% as.character() %>% substr(5,19))
+    
+    
+    
     
 ###############################
   #  KleineDatei erstellen
@@ -327,6 +368,8 @@ mutate(date_full = seq(
     ymd_hm('2019-01-01 00:00'),
     ymd_hm('2019-12-31 23:00'),
     by = 'hour'))
+
+
 
 
 
