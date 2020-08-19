@@ -7,21 +7,21 @@
 
 
 
-slpc_r <- read_delim("/Users/sascha/Nextcloud/04_PV/07_Projekte/Dorsten_STursula/Realschule/stursula_real_slp.csv", delim = ";")
+slpc_r <- read_delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Rohdaten/stursula_real_slp.csv", delim = ";")
 sedn_r <- read_delim("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/solar_europe_de_nuts.csv", delim = ",")
+sedn_r <- solar_europe_de_nuts
 sedn_t <- sedn_r %>%
   mutate(day = utc_timestamp %>% as.character() %>% substr(5,19))
 
 sedn_slpc <- slpc_r %>% 
-  mutate(t = as.POSIXct(paste(Datum, Zeit), format="%Y-%m-%d %H:%M:%S")) %>%
-  group_by(date = floor_date(t, unit = "hour")) %>%
-  summarize( kwh = sum(kwh)/4) %>% 
-  mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>% 
+  mutate(date = as.POSIXct(date, format="%Y-%m-%d %H:%M:%S")) %>%
+  group_by(date = floor_date(date, unit = "hour")) %>%
+  summarise(kwh = sum(consumw1) / 4) %>% 
   mutate(day = date %>% as.character() %>% substr(5,19)) %>% 
   right_join(sedn_t,by = "day") %>% 
   select(-day,-date) %>% 
   rename(consumw1 = kwh) %>% 
-  select(-country,-temperature,-global_radiation) 
+  #select(-country,-temperature,-global_radiation) 
   write_csv("C:/Users/corvi/Nextcloud/17_solar_dashbord/solar-dashbord-business/sedn_slpc_bu.csv")
 
 
