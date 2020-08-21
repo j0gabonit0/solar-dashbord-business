@@ -2,7 +2,7 @@ library(shinydashboard)
 titlePanel("SolarCalculator Volti")
 sidebar <- dashboardSidebar(
  sidebarMenu(
-      selectizeInput(inputId = "selected_country", label = "1.Select city",options(maxOptions = 10000), choices = sort(unique(nuts_123_germany$place))),
+      selectizeInput(inputId = "selected_country", label = "1.Select city",options = list(maxOptions = 10000), choices = sort(unique(nuts_123_germany$place))),
       numericInput(inputId = "m2", label = "3.Freie Dachflaeche", value = "500"),
       numericInput(inputId = "efficency", label = "4.Effizienz Module", value = "0.2", min = 0, max = 1, step = 0.05),
       numericInput(inputId = "cost", label = "5.Kosten pro kWh", value = "0.16"),
