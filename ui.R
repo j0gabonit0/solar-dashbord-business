@@ -66,7 +66,10 @@ body <- dashboardBody(
                valueBoxOutput("gk", width = 4)),
        tableOutput("files"),
        fluidRow(
-         valueBoxOutput("jo", width = 4))
+         valueBoxOutput("jo", width = 4)),
+       fluidRow(
+         plotlyOutput("pie_rent", height = 400, width = 400)
+       )
        )
   
 

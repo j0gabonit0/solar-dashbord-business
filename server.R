@@ -240,6 +240,31 @@ function(input, output, session) {
   
   # Plot von Eigenverbrauch und Netzeinspeisung in kWh
   
+  #https://stackoverflow.com/questions/56530842/open-pie-chart-donut-chart-in-r-using-plotly-with-count-and-percentage
+  
+  output$pie_rent <- renderPlotly({  
+    data <- filtering()
+    data %>% 
+    mutate(swm2 = radiation_direct_horizontal) %>%
+    mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
+    mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
+    summarise(
+      ekwh = (sum(e1, na.rm = TRUE) / years),
+      vkwh = (sum(v1, na.rm = TRUE) / years),
+      z = 1
+    ) %>% 
+    pivot_longer(-z, names_to = "name", values_to = "values") %>% 
+    plot_ly(labels = ~name, values = ~values) %>%
+    add_pie(hole = 0.95) %>%
+    layout(title = "Eigenverbrauch/Netzeinspeisung",  showlegend = F,
+           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE),
+           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE))
+  
+  })
+
+  
+  
+  
   output$bar_chart <- renderPlot({
     data <- filtering()
     data %>%
