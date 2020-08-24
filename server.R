@@ -258,8 +258,8 @@ function(input, output, session) {
     add_pie(hole = 0.95) %>%
     layout(title = "Eigenverbrauch/Netzeinspeisung",  showlegend = F,
            xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE),
-           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE))
-  
+           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE),
+           paper_bgcolor='transparent')
   })
 
   
