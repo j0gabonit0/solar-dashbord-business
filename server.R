@@ -94,7 +94,7 @@ function(input, output, session) {
         direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) *
           (1 + ((-0.5 * temperature + 12.5) / 100))) * 
           input$efficency * module_reduce * anti_reflection_modul * wechselrichter_wigrad * input$m2)
-      #select(-zeitgl, -stundenwinkel,0 -sonnenhoehe,-cos_azimut,-angle_of_incidance, - direct_radiation_pv, -diffuse_radiation_pv,-reflective_radiation_pv, -dec) %>% 
+     
     
       })
   
@@ -162,7 +162,8 @@ function(input, output, session) {
 
   output$files <- renderTable(input$file)
   
-  
+    
+    
   ####  Output  ####
   
   output$kwhm2 <- renderInfoBox({
@@ -242,6 +243,36 @@ function(input, output, session) {
   
   #https://stackoverflow.com/questions/56530842/open-pie-chart-donut-chart-in-r-using-plotly-with-count-and-percentage
   
+  output$fig <- renderPlotly({ 
+    data <- filtering()
+    data %>% 
+    mutate(swm2 = radiation_direct_horizontal) %>%
+      mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
+      mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
+      summarise(
+        ekwh = (sum(e1, na.rm = TRUE) / years),
+        vkwh = (sum(v1, na.rm = TRUE) /years))
+      plot_ly(
+        domain = list(x = c(0, 1), y = c(0, 1)),
+        value = (ekwh[1] / (ekwh[1] + ~vkwh[1]) * 100),
+        title = list(text = "Eigenverbrauch in %"),
+        type = "indicator",
+        mode = "gauge+number+delta",
+        delta = list(reference = 5),
+        gauge = list(
+          axis =list(range = list(NULL, 100)),
+          steps = list(
+            list(range = c(0, 250), color = "gray"),
+            list(range = c(250, 400), color = "blue")),
+          threshold = list(
+            line = list(color = "blue", width = 2),
+            thickness = 0.8,
+            value = 10)),
+        margin = list(l=20,r=30))
+    
+  })
+  
+  
   output$pie_rent <- renderPlotly({  
     data <- filtering()
     data %>% 
@@ -251,8 +282,7 @@ function(input, output, session) {
     summarise(
       ekwh = (sum(e1, na.rm = TRUE) / years),
       vkwh = (sum(v1, na.rm = TRUE) / years),
-      z = 1
-    ) %>% 
+      z = 1) %>% 
     pivot_longer(-z, names_to = "name", values_to = "values") %>% 
     plot_ly(labels = ~name, values = ~values) %>%
     add_pie(hole = 0.95) %>%
