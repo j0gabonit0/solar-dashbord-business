@@ -68,7 +68,8 @@ body <- dashboardBody(
        fluidRow(
          valueBoxOutput("jo", width = 4)),
        fluidRow(
-         plotlyOutput("pie_rent", height = 400, width = 400)
+         plotlyOutput("pie_rent", height = 400, width = 400),
+         plotlyOutput("fig", height = 400, width = 400)
        )
        )
   
