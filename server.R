@@ -243,10 +243,12 @@ function(input, output, session) {
   
   #https://stackoverflow.com/questions/56530842/open-pie-chart-donut-chart-in-r-using-plotly-with-count-and-percentage
   
+  #GaugeChart
+  
   output$fig <- renderPlotly({ 
     data <- filtering()
     data %>% 
-    mutate(swm2 = radiation_direct_horizontal) %>%
+    mutate(swm2 = solar_watt) %>%
       mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
       mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
       summarise(
@@ -255,6 +257,7 @@ function(input, output, session) {
       plot_ly(
         domain = list(x = c(0, 1), y = c(0, 1)),
         value = (ekwh[1] / (ekwh[1] + ~vkwh[1]) * 100),
+
         title = list(text = "Eigenverbrauch in %"),
         type = "indicator",
         mode = "gauge+number+delta",
@@ -273,6 +276,29 @@ function(input, output, session) {
   })
   
   
+  # BarChart
+  
+  output$lastprofil_bar_chart <- renderPlot({
+    data <- filtering()
+    data %>%
+      mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
+      mutate(month = month(utc_timestamp)) %>%
+      group_by(month) %>% 
+      summarise(consum_month = sum(consumw1), 
+                production_month = sum(solar_watt)) %>% 
+    ggplot(aes(x = month)) +
+      geom_bar(aes(y = consum_month, colour = "Stromverbrauch in kWh"), stat = "identity", position="dodge") +
+      geom_bar(aes(y = production_month, colour = "Stromproduktion in kWh"), stat = "identity",position="dodge")+
+      theme(
+        panel.background = element_blank(),
+        plot.background = element_blank(),
+        legend.background = element_blank(),
+        legend.box.background = element_blank()
+      )
+  })
+  
+  
+  #Tortendiagramm
   output$pie_rent <- renderPlotly({  
     data <- filtering()
     data %>% 

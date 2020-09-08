@@ -27,16 +27,21 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
        h3("Photovoltaik Rendite Rechner", align = "center"),
-              box(
+            box(
               plotOutput("bar_chart"), 
               width = 6, 
               title = "Verhältnis Eigenverbrauch/Netzeinspeisung", 
               background = "green"),
-              box(
+            box(
               plotOutput("radiation_chart"), 
               width = 6,
               title = "Stromnetznutzung", 
               background = "yellow"),
+            box(
+              plotOutput("lastprofil_bar_chart"), 
+              width = 6,
+              title = "Leistung und Bedarf", 
+              background = "red"),
        hr(),
        fluidPage(fluidRow(column(12, div(dataTableOutput("dataTable"))))),
        fluidPage(fluidRow(column(10, div(dataTableOutput("dtcsv"))))),
