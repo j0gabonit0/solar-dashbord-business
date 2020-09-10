@@ -58,3 +58,8 @@ wechselrichter_wigrad = 0.98 # Der maximale Wirkungsgrad von Wechselrichtern ist
 
 #Eigenverbrauch  = consum
 #Netzeinspeisung = sale
+#Strombedarf = energy_demand
+
+
+
+

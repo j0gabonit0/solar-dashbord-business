@@ -71,10 +71,12 @@ body <- dashboardBody(
                valueBoxOutput("gk", width = 4)),
        tableOutput("files"),
        fluidRow(
-         valueBoxOutput("jo", width = 4)),
+         valueBoxOutput("jo", width = 400)),
        fluidRow(
          plotlyOutput("pie_rent", height = 400, width = 400),
-         plotlyOutput("fig", height = 400, width = 400)
+         plotlyOutput("fig", height = 400, width = 400),
+         plotlyOutput("autarkie_gauge", height = 400, width = 400),
+         
        )
        )
   

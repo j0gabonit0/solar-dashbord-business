@@ -139,7 +139,8 @@ function(input, output, session) {
           sum(v1, na.rm = TRUE) / years
         ))),
         es = (sum(v1, na.rm = TRUE) / years * input$price),
-        ge = ev + es
+        ge = ev + es,
+        energy_demand = sum(solar_watt)
       )
     
   })
@@ -273,8 +274,56 @@ function(input, output, session) {
     
   })
   
+  output$autarkie_gauge <- renderPlotly({ 
+    data <- erloes()
+    # mutate(swm2 = solar_watt) %>%
+    #  mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
+    # mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
+    #summarise(
+    # ekwh = (sum(e1, na.rm = TRUE) / years),
+    #vkwh = (sum(v1, na.rm = TRUE) /years))
+    plot_ly(
+      domain = list(x = c(0, 1), y = c(0, 1)),
+      value = (data$ekwh / data$energy_demand * 100),
+      title = list(text = "Autarkiegrad in %"),
+      type = "indicator",
+      mode = "gauge+number+delta",
+      delta = list(reference = 5),
+      gauge = list(
+        axis =list(range = list(NULL, 100)),
+        steps = list(
+          list(range = c(0, 250), color = "gray"),
+          list(range = c(250, 400), color = "blue")),
+        threshold = list(
+          line = list(color = "blue", width = 2),
+          thickness = 0.8,
+          value = 10)),
+      margin = list(l=20,r=30))
+    
+  })
   
-  # BarChart
+  #Tortendiagramm
+  output$pie_rent <- renderPlotly({  
+    data <- filtering()
+    data %>% 
+      mutate(swm2 = radiation_direct_horizontal) %>%
+      mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
+      mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
+      summarise(
+        ekwh = (sum(e1, na.rm = TRUE) / years),
+        vkwh = (sum(v1, na.rm = TRUE) / years),
+        z = 1) %>% 
+      pivot_longer(-z, names_to = "name", values_to = "values") %>% 
+      plot_ly(labels = ~name, values = ~values) %>%
+      add_pie(hole = 0.95) %>%
+      layout(title = "Eigenverbrauch/Netzeinspeisung",  showlegend = F,
+             xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE),
+             yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE),
+             paper_bgcolor='transparent')
+  })
+  
+  
+  # 1. BarChart Bedarf und Leistung der PV-Anlage
   
   output$lastprofil_bar_chart <- renderPlot({
     data <- filtering()
@@ -285,60 +334,42 @@ function(input, output, session) {
       summarise(consum_month = sum(consumw1), 
                 production_month = sum(solar_watt)) %>% 
     ggplot(aes(x = month)) +
-      geom_bar(aes(y = consum_month, colour = "Stromverbrauch in kWh"), stat = "identity", position="dodge") +
-      geom_bar(aes(y = production_month, colour = "Stromproduktion in kWh"), stat = "identity",position="dodge")+
+      geom_line(aes(y = consum_month), colour = "blue") +
+      geom_line(aes(y = production_month), colour = "green") +
       theme(
-        panel.background = element_blank(),
-        plot.background = element_blank(),
-        legend.background = element_blank(),
-        legend.box.background = element_blank()
+      panel.background = element_blank(),
+      plot.background = element_blank(),
+      legend.background = element_blank(),
+      legend.box.background = element_blank(),
+      axis.line = element_line(colour = "darkblue", 
+                               size = 1, linetype = "solid"),
+      axis.text.x = element_text(colour = "#ff6666", size = 20, angle = 90),
+      axis.text.y = element_text(colour = "#668cff", size = 20)
+      #axis.text = element_text( 
+       # angle = 0, 
+        #color="white", 
+        #size=15, 
+        #face=3)
       )
-  })
+  }, bg = "transparent")
   
-  
-  #Tortendiagramm
-  output$pie_rent <- renderPlotly({  
-    data <- filtering()
-    data %>% 
-    mutate(swm2 = radiation_direct_horizontal) %>%
-    mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
-    mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
-    summarise(
-      ekwh = (sum(e1, na.rm = TRUE) / years),
-      vkwh = (sum(v1, na.rm = TRUE) / years),
-      z = 1) %>% 
-    pivot_longer(-z, names_to = "name", values_to = "values") %>% 
-    plot_ly(labels = ~name, values = ~values) %>%
-    add_pie(hole = 0.95) %>%
-    layout(title = "Eigenverbrauch/Netzeinspeisung",  showlegend = F,
-           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE),
-           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = TRUE),
-           paper_bgcolor='transparent')
-  })
-
-  
-  
+  #2. Liniendiagramm Eigenverbrauch/Netzeinspeisung
   
   output$bar_chart <- renderPlot({
     data <- filtering()
     data %>%
       mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
       mutate(swm2 = solar_watt) %>%
-      mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
-      mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
+      mutate(consum = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
+      mutate(sale = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
       group_by(day) %>%
-      summarise(e = mean(e1), v = mean(v1)) %>%
-      mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
-      mutate(month = month(date)) %>%
-      group_by(month) %>%
-      summarise(em = floor(sum(e, na.rm = TRUE)), vm = floor((sum(v, na.rm = TRUE)))) %>%
-      ggplot(aes(x = month)) +
-      geom_line(aes(y = em, colour = "Eigenverbrauch in kWh"), stat = "identity") +
-      geom_line(aes(y = vm, colour = "Netzeinspeisung in kWh"), stat = "identity") +
-      geom_point(aes(y = em), stat = "identity") +
-      geom_point(aes(y = vm), stat = "identity") +
-      geom_text(mapping = aes(x = month, y = em, label = em)) +
-      geom_text(mapping = aes(x = month, y = vm, label = vm)) +
+      summarise(consum_day = floor(sum(consum, na.rm = TRUE)), sale_day = floor((sum(sale, na.rm = TRUE)))) %>%
+      mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>% 
+      ggplot(aes(x = date)) +
+      geom_smooth(aes(y = consum_day), colour = "blue") +
+      geom_smooth(aes(y = sale_day),colour = "red") +
+      #geom_text(mapping = aes(x = date, y = consum_day, label = consum_day)) +
+      #geom_text(mapping = aes(x = date, y = sale_day, label = sale_day)) +
       xlab("") +
       ylab("") +
       scale_colour_manual(name = "Legende",
@@ -379,13 +410,15 @@ function(input, output, session) {
       geom_smooth(aes(y = v, colour = "Netzeinspeisung")) +
       xlab("") +
       ylab("") +
+      scale_x_datetime(date_labels = "%B")+
       scale_colour_manual(name = "legend",
                           values = c("blue", "green", "yellow")) +
       theme(
         panel.background = element_blank(),
         plot.background = element_blank(),
         legend.background = element_rect(fill = "transparent", colour = NA),
-        legend.box.background = element_rect(fill = "transparent", colour = NA)
+        legend.box.background = element_rect(fill = "transparent", colour = NA),
+        axis.text.x = element_text(angle=45, hjust = 1)
       )
   }, bg = "transparent")
   
