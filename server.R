@@ -246,18 +246,16 @@ function(input, output, session) {
   #GaugeChart
   
   output$fig <- renderPlotly({ 
-    data <- filtering()
-    data %>% 
-    mutate(swm2 = solar_watt) %>%
-      mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
-      mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
-      summarise(
-        ekwh = (sum(e1, na.rm = TRUE) / years),
-        vkwh = (sum(v1, na.rm = TRUE) /years))
+    data <- erloes()
+   # mutate(swm2 = solar_watt) %>%
+    #  mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
+     # mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
+      #summarise(
+       # ekwh = (sum(e1, na.rm = TRUE) / years),
+        #vkwh = (sum(v1, na.rm = TRUE) /years))
       plot_ly(
         domain = list(x = c(0, 1), y = c(0, 1)),
-        value = (ekwh[1] / (ekwh[1] + ~vkwh[1]) * 100),
-
+        value = (data$ekwh / (data$ekwh + data$vkwh) * 100),
         title = list(text = "Eigenverbrauch in %"),
         type = "indicator",
         mode = "gauge+number+delta",
