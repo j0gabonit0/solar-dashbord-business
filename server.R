@@ -304,14 +304,11 @@ function(input, output, session) {
   
   #Tortendiagramm
   output$pie_rent <- renderPlotly({  
-    data <- filtering()
+    data <- erloes()
     data %>% 
-      mutate(swm2 = radiation_direct_horizontal) %>%
-      mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
-      mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
       summarise(
-        ekwh = (sum(e1, na.rm = TRUE) / years),
-        vkwh = (sum(v1, na.rm = TRUE) / years),
+        ekwh = (sum(data$ekwh, na.rm = TRUE) / years),
+        vkwh = (sum(data$vkwh, na.rm = TRUE) / years),
         z = 1) %>% 
       pivot_longer(-z, names_to = "name", values_to = "values") %>% 
       plot_ly(labels = ~name, values = ~values) %>%
@@ -333,7 +330,9 @@ function(input, output, session) {
       group_by(month) %>% 
       summarise(consum_month = sum(consumw1), 
                 production_month = sum(solar_watt)) %>% 
-    ggplot(aes(x = month)) +
+      #mutate(month_name = month.abb[month]) %>% 
+      mutate(month_n = factor(month, ordered = TRUE)) %>% 
+      ggplot(aes(x = month_n)) +
       geom_line(aes(y = consum_month), colour = "blue") +
       geom_line(aes(y = production_month), colour = "green") +
       theme(
@@ -385,7 +384,7 @@ function(input, output, session) {
   }, bg = "transparent")
   
   
-  #Plot von Netzeinspeisung Eigenverbrauch und Lastgang in kWh
+  #Plot Stromnetzunutzung von Netzeinspeisung Eigenverbrauch und Lastgang in kWh
   
   output$radiation_chart <- renderPlot({
     data <- filtering()

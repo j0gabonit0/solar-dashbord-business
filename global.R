@@ -13,12 +13,12 @@ library(aspace)
 library(plotly)
 
 #b 
-#x <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
+x <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 #iw 
 #x <- "C:/Users/saschaw/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 #m
 #x <- "/Volumes/BOOTCAMP/Users/sascha/Nextcloud/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
-x <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
+#x <- "/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 
 path_sedn_slpc <- x
 #path_sedn_slpc <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/sedn_slpc_bu.csv"
@@ -30,9 +30,11 @@ path_sedn_slpc <- x
 sedn_slpc <- read_delim(path_sedn_slpc, delim = ",")
 sedn_slpc <- sedn_slpc %>%
   mutate(utc_timestamp = as.POSIXct(utc_timestamp), format = c("%Y-%m-%d %H:%M:%S")) %>% 
-  mutate(u1 = utc_timestamp %>% as.character() %>% substr(6, 19))
+  mutate(u1 = utc_timestamp %>% as.character() %>% substr(6, 19)) %>% 
+  na.omit() %>% 
+  filter(utc_timestamp > "2009-12-31 24:00:00")
 
-nuts_123_germany <- read.csv("/Users/sascha/NC/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/nuts_123_germany.csv", encoding = "UTF-8")
+nuts_123_germany <- read.csv("C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/nuts_123_germany.csv", encoding = "UTF-8")
 
 nuts_123_germany <- nuts_123_germany %>% 
   mutate(nuts2 = nuts2 %>% as.character()) %>% 
