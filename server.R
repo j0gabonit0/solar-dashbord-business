@@ -320,39 +320,10 @@ function(input, output, session) {
   })
   
   
-  # 1. BarChart Bedarf und Leistung der PV-Anlage
   
-  output$lastprofil_bar_chart <- renderPlot({
-    data <- filtering()
-    data %>%
-      mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
-      mutate(month = month(utc_timestamp)) %>%
-      group_by(month) %>% 
-      summarise(consum_month = sum(consumw1), 
-                production_month = sum(solar_watt)) %>% 
-      #mutate(month_name = month.abb[month]) %>% 
-      mutate(month_n = factor(month, ordered = TRUE)) %>% 
-      ggplot(aes(x = month_n)) +
-      geom_line(aes(y = consum_month), colour = "blue") +
-      geom_line(aes(y = production_month), colour = "green") +
-      theme(
-      panel.background = element_blank(),
-      plot.background = element_blank(),
-      legend.background = element_blank(),
-      legend.box.background = element_blank(),
-      axis.line = element_line(colour = "darkblue", 
-                               size = 1, linetype = "solid"),
-      axis.text.x = element_text(colour = "#ff6666", size = 20, angle = 90),
-      axis.text.y = element_text(colour = "#668cff", size = 20)
-      #axis.text = element_text( 
-       # angle = 0, 
-        #color="white", 
-        #size=15, 
-        #face=3)
-      )
-  }, bg = "transparent")
   
-  #2. Liniendiagramm Eigenverbrauch/Netzeinspeisung
+
+  #1. Verhältnis Eigenverbrauch/Netzeinspeisung
   
   output$bar_chart <- renderPlot({
     data <- filtering()
@@ -383,9 +354,8 @@ function(input, output, session) {
     
   }, bg = "transparent")
   
-  
-  #Plot Stromnetzunutzung von Netzeinspeisung Eigenverbrauch und Lastgang in kWh
-  
+  #2. Stromnetznutzung
+
   output$radiation_chart <- renderPlot({
     data <- filtering()
     data %>%
@@ -403,13 +373,13 @@ function(input, output, session) {
       ) %>%
       mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       ggplot() +
+      scale_x_datetime(minor_breaks = waiver(),date_minor_breaks = "1 month")+
       aes(x = date) +
       geom_smooth(aes(y = slp, colour = "Standardlastprofil")) +
       geom_smooth(aes(y = e, colour = "Eigenverbrauch")) +
       geom_smooth(aes(y = v, colour = "Netzeinspeisung")) +
       xlab("") +
       ylab("") +
-      scale_x_datetime(date_labels = "%B")+
       scale_colour_manual(name = "legend",
                           values = c("blue", "green", "yellow")) +
       theme(
@@ -420,6 +390,39 @@ function(input, output, session) {
         axis.text.x = element_text(angle=45, hjust = 1)
       )
   }, bg = "transparent")
+  
+  # 3. BarChart Bedarf und Leistung der PV-Anlage
+  
+  output$lastprofil_bar_chart <- renderPlot({
+    data <- filtering()
+    data %>%
+      mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
+      mutate(month = month(utc_timestamp)) %>%
+      group_by(month) %>% 
+      summarise(consum_month = sum(consumw1), 
+                production_month = sum(solar_watt)) %>% 
+      mutate(date = as.POSIXct(paste0("2020-", month, "-01"), format = c("%Y-%m-%d"))) %>%
+      ggplot(aes(x = date)) +
+      geom_line(aes(y = consum_month), colour = "blue") +
+      geom_line(aes(y = production_month), colour = "green") +
+      theme(
+        panel.background = element_blank(),
+        plot.background = element_blank(),
+        legend.background = element_blank(),
+        legend.box.background = element_blank(),
+        axis.line = element_line(colour = "darkblue", 
+                                 size = 1, linetype = "solid"),
+        axis.text.x = element_text(colour = "#ff6666", size = 20, angle = 90),
+        axis.text.y = element_text(colour = "#668cff", size = 20)
+        #axis.text = element_text( 
+        # angle = 0, 
+        #color="white", 
+        #size=15, 
+        #face=3)
+      )
+  }, bg = "transparent")
+  
+
   
   #Plot einer Tabelle mit Eigenverbrauch und Netzeinspeisung pro Monat
   
