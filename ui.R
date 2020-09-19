@@ -44,6 +44,12 @@ body <- dashboardBody(
               width = 12,
               title = "Produktion im Monat", 
               background = "blue"),
+            box(
+              plotOutput("barchart_top10_consum"), 
+              width = 12,
+              title = "Top 10 Spitzenlast im Jahr", 
+              background = "navy"),
+  
        hr(),
        fluidPage(fluidRow(column(12, div(dataTableOutput("dataTable"))))),
        fluidPage(fluidRow(column(10, div(dataTableOutput("dtcsv"))))),

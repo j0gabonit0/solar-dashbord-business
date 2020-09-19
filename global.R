@@ -52,8 +52,8 @@ module_reduce = 0.95
 m2kwp = 5.2
 
 startyear <- 2010
-endyear <- 2012
-years = 3
+endyear <- 2010
+years = 1
 
 #Losses
 

@@ -125,26 +125,23 @@ function(input, output, session) {
   
   erloes <- reactive({
     filtering() %>%
-      mutate(swm2 = solar_watt) %>%
-      mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
-      mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
       summarise(
-        ekwh = (sum(e1, na.rm = TRUE) / years),
-        ev = (sum(e1, na.rm = TRUE) / years * input$cost),
-        ekwh_percent = ((sum(e1, na.rm = TRUE) / years) / ((
-          sum(e1, na.rm = TRUE) / years
+        ekwh = (sum(consum, na.rm = TRUE) / years),
+        ev = (sum(consum, na.rm = TRUE) / years * input$cost),
+        ekwh_percent = ((sum(consum, na.rm = TRUE) / years) / ((
+          sum(consum, na.rm = TRUE) / years
         ) + (
-          sum(v1, na.rm = TRUE) / years
+          sum(sale, na.rm = TRUE) / years
         ))),
-        vkwh = (sum(v1, na.rm = TRUE) / years),
-        vkwh_percent = ((sum(v1, na.rm = TRUE) / years) / ((
-          sum(e1, na.rm = TRUE) / years
+        vkwh = (sum(sale, na.rm = TRUE) / years),
+        vkwh_percent = ((sum(sale, na.rm = TRUE) / years) / ((
+          sum(consum, na.rm = TRUE) / years
         ) + (
-          sum(v1, na.rm = TRUE) / years
+          sum(sale, na.rm = TRUE) / years
         ))),
-        es = (sum(v1, na.rm = TRUE) / years * input$price),
+        es = (sum(sale, na.rm = TRUE) / years * input$price),
         ge = ev + es,
-        energy_demand = sum(solar_watt)
+        energy_demand = sum(consumw1) /years
       )
     
   })
@@ -252,12 +249,6 @@ function(input, output, session) {
   
   output$fig <- renderPlotly({ 
     data <- erloes()
-   # mutate(swm2 = solar_watt) %>%
-    #  mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
-     # mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
-      #summarise(
-       # ekwh = (sum(e1, na.rm = TRUE) / years),
-        #vkwh = (sum(v1, na.rm = TRUE) /years))
       plot_ly(
         domain = list(x = c(0, 1), y = c(0, 1)),
         value = (data$ekwh / (data$ekwh + data$vkwh) * 100),
@@ -278,14 +269,10 @@ function(input, output, session) {
     
   })
   
+  #Gauge Chart Autarkie
+  
   output$autarkie_gauge <- renderPlotly({ 
     data <- erloes()
-    # mutate(swm2 = solar_watt) %>%
-    #  mutate(e1 = ifelse(swm2 <= consumw1, swm2, consumw1)) %>%
-    # mutate(v1 = ifelse(swm2 >= consumw1, swm2 - consumw1, 0)) %>%
-    #summarise(
-    # ekwh = (sum(e1, na.rm = TRUE) / years),
-    #vkwh = (sum(v1, na.rm = TRUE) /years))
     plot_ly(
       domain = list(x = c(0, 1), y = c(0, 1)),
       value = (data$ekwh / data$energy_demand * 100),
@@ -355,7 +342,8 @@ function(input, output, session) {
         plot.background = element_blank(),
         legend.background = element_rect(fill = "transparent", colour = NA),
         legend.box.background = element_rect(fill = "transparent", colour = NA),
-        axis.text.x = element_text(angle=45, hjust = 1),
+        axis.text.x = element_text(angle=45, hjust = 1, , colour = "white"),
+        axis.text.y = element_text(colour = "white"),
         panel.border = element_rect(colour = "white", fill=NA, size=1)
       )
   }, bg = "transparent")
@@ -384,13 +372,17 @@ function(input, output, session) {
         plot.background = element_blank(),
         legend.background = element_rect(fill = "transparent", colour = NA),
         legend.box.background = element_rect(fill = "transparent", colour = NA),
-        axis.text.x = element_text(angle=45, hjust = 1),
+        axis.text.x = element_text(angle=45, hjust = 1, , colour = "white"),
+        axis.text.y = element_text(colour = "white"),
         panel.border = element_rect(colour = "white", fill=NA, size=1)
       )
   }, bg = "transparent")
   
+  #Grid Produktion der PV-Anlage pro Monat
+  
   output$grid_production_month <- renderPlot({
     data <- filtering()
+    abbreviation_month <- c("Januar","Februar","März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember")
     data %>%
     mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%  #mehrere Jahre auf ein JAhr reduzieren
     mutate(day = day %>% as.character() %>% substr(1, 5)) %>% # 24 Stunden auf einen Tag reduzieren 
@@ -406,15 +398,53 @@ function(input, output, session) {
     mutate(month = month(date)) %>% 
     filter(variable1 == "production_day") %>% 
     ggplot( aes(x=date, y = value)) +
-    geom_bar(stat='identity', position='dodge', color = "red", fill="darkgreen") +
+    geom_bar(stat='identity', position='dodge', color = "steelblue", fill="darkgreen") +
     facet_wrap(month ~ ., scales = "free_x",ncol=4) +
     labs(title = 'Stromproduktion der PV-Anlage im Monat' ,
-           y = "in kWh")
+           y = "in kWh",
+            x = "Monate") +
+    theme(
+      panel.background = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.background = element_blank(),
+      legend.background = element_rect(fill = "transparent", colour = NA),
+      legend.box.background = element_rect(fill = "transparent", colour = NA),
+      axis.text.x = element_text(angle=45, hjust = 1, , colour = "white"),
+      axis.text.y = element_text(colour = "white"),
+      panel.border = element_rect(colour = "white", fill=NA, size=1)
+    )
+    
   
-  })
+  }, bg = "transparent")
   
-  
-  
+  # Top 10 Tage Stromverbrauch
+    output$barchart_top10_consum <- renderPlot({
+    data <- filtering()
+    data %>%
+      group_by(day) %>% 
+      summarise(consumw1 = sum(consumw1)) %>% 
+      arrange(desc(consumw1)) %>%
+      slice(1:10) %>% 
+      mutate(consumw1 = consumw1 / years) %>%
+      #mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
+      mutate(date = day %>% as.character()) %>% 
+      rowid_to_column("ID")  %>% 
+      ggplot( aes(x = date, y = consumw1, label = ID)) +
+      geom_bar(stat='identity', position='dodge', color = "springgreen3", fill="springgreen3") +
+      geom_label(aes(label = consumw1, hjust = 0.5), size = 2) +
+      labs(y = "in kWh") +
+      theme(
+        panel.background = element_blank(),
+        panel.grid.minor = element_blank(),
+        plot.background = element_blank(),
+        legend.background = element_rect(fill = "transparent", colour = NA),
+        legend.box.background = element_rect(fill = "transparent", colour = NA),
+        axis.text.x = element_text(angle=45, hjust = 1, colour = "white"),
+        axis.text.y = element_text(colour = "white"),
+        panel.border = element_rect(colour = "white", fill=NA, size=1)
+      )
+    
+  }, bg = "transparent")
   
   
   #Plot einer Tabelle mit Eigenverbrauch und Netzeinspeisung pro Monat

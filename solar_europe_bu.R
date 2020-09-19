@@ -245,7 +245,7 @@ solar_europe_de_nuts %>%
     write_csv(jop,"solar-germany-nuts.csv")
     
     s <- jop %>% 
-      filter(utc_timestamp >= "2010-01-01 00:00:00", utc_timestamp <="2015-12-31 24:00:00") 
+      filter(utc_timestamp > "2010-01-01 00:00:00", utc_timestamp <="2010-12-31 24:00:00") 
       
     write.csv(s, "solar-germany-nuts-short.csv", fileEncoding = 'UTF-8')
     
