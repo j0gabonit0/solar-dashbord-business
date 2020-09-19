@@ -93,7 +93,11 @@ function(input, output, session) {
       mutate(solar_watt = ((
         direct_radiation_pv + diffuse_radiation_pv + reflective_radiation_pv) *
           (1 + ((-0.5 * temperature + 12.5) / 100))) * 
-          input$efficency * module_reduce * anti_reflection_modul * wechselrichter_wigrad * input$m2)
+          input$efficency * module_reduce * anti_reflection_modul * wechselrichter_wigrad * input$m2) %>% 
+      mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
+      mutate(swm2 = solar_watt) %>%
+      mutate(consum = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
+      mutate(sale = ifelse(swm2 > consumw1, swm2 - consumw1, 0))
      
     
       })
@@ -320,74 +324,39 @@ function(input, output, session) {
   })
   
   
-  
-  
-
-  #1. Verhältnis Eigenverbrauch/Netzeinspeisung
-  
-  output$bar_chart <- renderPlot({
-    data <- filtering()
-    data %>%
-      mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
-      mutate(swm2 = solar_watt) %>%
-      mutate(consum = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
-      mutate(sale = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
-      group_by(day) %>%
-      summarise(consum_day = floor(sum(consum, na.rm = TRUE)), sale_day = floor((sum(sale, na.rm = TRUE)))) %>%
-      mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>% 
-      ggplot(aes(x = date)) +
-      geom_smooth(aes(y = consum_day), colour = "blue") +
-      geom_smooth(aes(y = sale_day),colour = "red") +
-      #geom_text(mapping = aes(x = date, y = consum_day, label = consum_day)) +
-      #geom_text(mapping = aes(x = date, y = sale_day, label = sale_day)) +
-      xlab("") +
-      ylab("") +
-      scale_colour_manual(name = "Legende",
-                          values = c("blue", "green", "yellow")) +
-      theme(
-        panel.background = element_blank(),
-        plot.background = element_blank(),
-        legend.background = element_blank(),
-        legend.box.background = element_blank()
-      )
-    
-    
-  }, bg = "transparent")
-  
   #2. Stromnetznutzung
 
   output$radiation_chart <- renderPlot({
     data <- filtering()
-    data %>%
-      mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%
-      mutate(swm2 = solar_watt) %>%
-      mutate(e1 = ifelse(swm2 < consumw1 , swm2, ifelse(swm2 > consumw1, consumw1 , 0))) %>%
-      mutate(v1 = ifelse(swm2 > consumw1, swm2 - consumw1, 0)) %>%
+    data %>% 
       group_by(day) %>%
       summarise(
         avg = mean(solar_watt, na.rm = TRUE) * input$m2,
-        e = mean(e1),
-        v = mean(v1),
-        stdv1 = sd(v1, na.rm = TRUE) ,
+        consum_day = mean(consum),
+        sale_day = mean(sale),
+        stdv1 = sd(sale_day, na.rm = TRUE) ,
         slp = mean(consumw1)
       ) %>%
       mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d %H:%M:%S"))) %>%
       ggplot() +
-      scale_x_datetime(minor_breaks = waiver(),date_minor_breaks = "1 month")+
+      scale_y_continuous(breaks = seq(0, 100, 10),limits=c(0, 100), expand = expand_scale(0.1))+
+      scale_x_datetime(date_labels = "%b",date_breaks = "1 month", expand = c(0,0)) +
       aes(x = date) +
       geom_smooth(aes(y = slp, colour = "Standardlastprofil")) +
-      geom_smooth(aes(y = e, colour = "Eigenverbrauch")) +
-      geom_smooth(aes(y = v, colour = "Netzeinspeisung")) +
+      geom_smooth(aes(y = consum_day, colour = "Eigenverbrauch")) +
+      geom_smooth(aes(y = sale_day, colour = "Netzeinspeisung")) +
       xlab("") +
       ylab("") +
       scale_colour_manual(name = "legend",
                           values = c("blue", "green", "yellow")) +
       theme(
         panel.background = element_blank(),
+        panel.grid.minor = element_blank(),
         plot.background = element_blank(),
         legend.background = element_rect(fill = "transparent", colour = NA),
         legend.box.background = element_rect(fill = "transparent", colour = NA),
-        axis.text.x = element_text(angle=45, hjust = 1)
+        axis.text.x = element_text(angle=45, hjust = 1),
+        panel.border = element_rect(colour = "white", fill=NA, size=1)
       )
   }, bg = "transparent")
   
@@ -402,27 +371,51 @@ function(input, output, session) {
       summarise(consum_month = sum(consumw1), 
                 production_month = sum(solar_watt)) %>% 
       mutate(date = as.POSIXct(paste0("2020-", month, "-01"), format = c("%Y-%m-%d"))) %>%
-      ggplot(aes(x = date)) +
-      geom_line(aes(y = consum_month), colour = "blue") +
-      geom_line(aes(y = production_month), colour = "green") +
+      select(-month) %>% 
+      pivot_longer(cols=c('consum_month', 'production_month'), names_to='variable', 
+                   values_to="value") %>% 
+      ggplot( aes(x=date, y=value, fill=variable)) +
+      geom_bar(stat='identity', position='dodge')+
+      scale_fill_manual(values=c('darkblue','darkgreen'))+
+      scale_x_datetime(date_labels = "%b",date_breaks = "1 month", expand = c(0,0)) +
       theme(
         panel.background = element_blank(),
+        panel.grid.minor = element_blank(),
         plot.background = element_blank(),
-        legend.background = element_blank(),
-        legend.box.background = element_blank(),
-        axis.line = element_line(colour = "darkblue", 
-                                 size = 1, linetype = "solid"),
-        axis.text.x = element_text(colour = "#ff6666", size = 20, angle = 90),
-        axis.text.y = element_text(colour = "#668cff", size = 20)
-        #axis.text = element_text( 
-        # angle = 0, 
-        #color="white", 
-        #size=15, 
-        #face=3)
+        legend.background = element_rect(fill = "transparent", colour = NA),
+        legend.box.background = element_rect(fill = "transparent", colour = NA),
+        axis.text.x = element_text(angle=45, hjust = 1),
+        panel.border = element_rect(colour = "white", fill=NA, size=1)
       )
   }, bg = "transparent")
   
-
+  output$grid_production_month <- renderPlot({
+    data <- filtering()
+    data %>%
+    mutate(day = utc_timestamp %>% as.character() %>% substr(6, 19)) %>%  #mehrere Jahre auf ein JAhr reduzieren
+    mutate(day = day %>% as.character() %>% substr(1, 5)) %>% # 24 Stunden auf einen Tag reduzieren 
+    group_by(day) %>% 
+    summarise(consum_day = sum(consumw1), 
+              production_day = sum(solar_watt)) %>% 
+    mutate(date = as.POSIXct(paste0("2020-", day, "-01"), format = c("%Y-%m-%d"))) %>%
+    pivot_longer(cols=c('consum_day', 'production_day'), names_to='variable1', 
+                 values_to="value") %>% 
+    mutate(date = as.POSIXct(paste0("2020-", day), format = c("%Y-%m-%d"))) %>% 
+    select(-day) %>% 
+    drop_na() %>% 
+    mutate(month = month(date)) %>% 
+    filter(variable1 == "production_day") %>% 
+    ggplot( aes(x=date, y = value)) +
+    geom_bar(stat='identity', position='dodge', color = "red", fill="darkgreen") +
+    facet_wrap(month ~ ., scales = "free_x",ncol=4) +
+    labs(title = 'Stromproduktion der PV-Anlage im Monat' ,
+           y = "in kWh")
+  
+  })
+  
+  
+  
+  
   
   #Plot einer Tabelle mit Eigenverbrauch und Netzeinspeisung pro Monat
   

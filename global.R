@@ -11,7 +11,9 @@ library(reshape2)
 library(ggpubr)
 library(aspace)
 library(plotly)
-
+library(shinythemes)
+library(highcharter)
+library(quantmod)
 #b 
 #x <- "C:/Users/corvi/Nextcloud-Stiftung/17_solar_dashbord/solar-dashbord-business/Kalkulationsgrundlage/solar-germany-nuts-short.csv"
 #iw 

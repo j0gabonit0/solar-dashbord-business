@@ -1,5 +1,6 @@
 library(shinydashboard)
 titlePanel("SolarCalculator Volti")
+
 sidebar <- dashboardSidebar(
  sidebarMenu(
       selectizeInput(inputId = "selected_country", label = "1.Select city",options = list(maxOptions = 10000), choices = sort(unique(nuts_123_germany$place))),
@@ -26,22 +27,23 @@ sidebar <- dashboardSidebar(
 
 
 body <- dashboardBody(
+  fluidPage(theme = shinytheme("superhero")),
        h3("Photovoltaik Rendite Rechner", align = "center"),
             box(
-              plotOutput("bar_chart"), 
-              width = 6, 
-              title = "Verhältnis Eigenverbrauch/Netzeinspeisung", 
-              background = "green"),
-            box(
               plotOutput("radiation_chart"), 
-              width = 6,
+              width = 12,
               title = "Stromnetznutzung", 
               background = "yellow"),
             box(
               plotOutput("lastprofil_bar_chart"), 
-              width = 6,
+              width = 12,
               title = "Leistung und Bedarf", 
               background = "red"),
+            box(
+              plotOutput("grid_production_month"), 
+              width = 12,
+              title = "Produktion im Monat", 
+              background = "blue"),
        hr(),
        fluidPage(fluidRow(column(12, div(dataTableOutput("dataTable"))))),
        fluidPage(fluidRow(column(10, div(dataTableOutput("dtcsv"))))),
@@ -72,12 +74,11 @@ body <- dashboardBody(
        tableOutput("files"),
        fluidRow(
          valueBoxOutput("jo", width = 400)),
+       hr(),
        fluidRow(
-         plotlyOutput("pie_rent", height = 400, width = 400),
-         plotlyOutput("fig", height = 400, width = 400),
-         plotlyOutput("autarkie_gauge", height = 400, width = 400),
-         
-       )
+         column(4,plotlyOutput("fig")), 
+         column(4,plotlyOutput("pie_rent")),
+         column(4,plotlyOutput("autarkie_gauge")))
        )
   
 
