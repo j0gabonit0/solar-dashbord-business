@@ -1,0 +1,12 @@
+name: solar-dashbord-business
+title: solar-dashbord-business
+username:
+account: photovoltaik-kalkulation
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2846933
+bundleId: 3648457
+url: https://photovoltaik-kalkulation.shinyapps.io/solar-dashbord-business/
+when: 1600588101.00736
+asMultiple: FALSE
+asStatic: FALSE
